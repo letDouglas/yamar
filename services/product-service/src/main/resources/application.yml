@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: product-service
+
+  data:
+    mongodb:
+      username: derain
+      password: derain
+      host: localhost
+      port: 27020
+      database: product
+      authentication-database: admin
+
+server:
+  port: 8041
+  servlet:
+    context-path: /api/v1
+
