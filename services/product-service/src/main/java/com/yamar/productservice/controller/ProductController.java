@@ -6,6 +6,7 @@ import com.yamar.productservice.dto.ProductUpdateRequest;
 import com.yamar.productservice.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,10 +20,10 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping
-    public ResponseEntity<Void> createProduct(@Valid @RequestBody ProductRequest productRequest) {
-        productService.createProduct(productRequest);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductRequest productRequest) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(productRequest));
     }
+
 
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAllProducts() {
