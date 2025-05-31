@@ -70,4 +70,14 @@ public class ProductService {
         log.debug("Check existence for ID {}: {}", id, exists);
         return exists;
     }
+
+    public void deleteProduct(String id) {
+        if (!productRepository.existsById(id)) {
+            log.warn("Product with ID {} not found for delete", id);
+            throw new ProductNotFoundException("Product not found with ID: " + id);
+        }
+
+        productRepository.deleteById(id);
+        log.info("Product deleted with ID: {}", id);
+    }
 }

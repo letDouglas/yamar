@@ -45,4 +45,11 @@ public class ProductController {
     public ResponseEntity<Boolean> existsProduct(@PathVariable String id) {
         return ResponseEntity.ok(productService.existsById(id));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable String id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }
