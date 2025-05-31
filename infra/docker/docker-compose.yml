@@ -1,11 +1,11 @@
 services:
   mongodb:
     image: mongo:7
-    container_name: yamar-mongo_db
+    container_name: yamar-mongo-db
     ports:
       - 27020:27017
     volumes:
-      - mongo:/data
+      - mongo:/data/db
     environment:
       - MONGO_INITDB_ROOT_USERNAME=derain
       - MONGO_INITDB_ROOT_PASSWORD=derain
@@ -14,7 +14,7 @@ services:
 
   mongo-express:
     image: mongo-express
-    container_name: yamar-mongo_express
+    container_name: yamar-mongo-express
     restart: always
     ports:
       - 9082:8081
@@ -27,9 +27,24 @@ services:
     networks:
       - yamar-net
 
+  mysql:
+    image: mysql:9.3
+    container_name: yamar-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "3312:3306"
+    volumes:
+      - mysql:/var/lib/mysql
+      - ./db-init:/docker-entrypoint-initdb.d
+    networks:
+      - yamar-net
+
 networks:
   yamar-net:
     driver: bridge
 
 volumes:
   mongo:
+  mysql:
