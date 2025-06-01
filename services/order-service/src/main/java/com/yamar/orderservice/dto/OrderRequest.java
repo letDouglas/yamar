@@ -14,8 +14,6 @@ import java.util.List;
 @Builder
 public class OrderRequest {
 
-    private Integer id;
-
     @NotNull(message = "Customer should be present")
     @NotEmpty(message = "Customer should be present")
     @NotBlank(message = "Customer should be present")

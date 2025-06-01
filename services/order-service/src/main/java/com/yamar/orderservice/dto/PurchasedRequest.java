@@ -11,7 +11,7 @@ import lombok.*;
 @AllArgsConstructor
 public class PurchasedRequest {
     @NotNull(message = "Product is mandatory")
-    private Integer productId;
+    private String productId;
     @Positive(message = "Quantity is mandatory")
     private double quantity;
 }

@@ -21,7 +21,7 @@ public class OrderLine {
     @JoinColumn(name = "order_id")
     private Order order;
 
-    private Integer productId;
+    private String productId;
 
     @Column(nullable = false)
     private double quantity;

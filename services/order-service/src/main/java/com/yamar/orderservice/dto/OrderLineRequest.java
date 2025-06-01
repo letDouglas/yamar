@@ -10,9 +10,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class OrderLineRequest {
-    private Integer id;
-    private Integer orderId;
-    private Integer productId;
+    private String productId;
     private double quantity;
     private BigDecimal pricePerUnit;
 }
