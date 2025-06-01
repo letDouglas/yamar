@@ -21,8 +21,6 @@ public class OrderRequest {
     @NotBlank(message = "Customer should be present")
     private String customerId;
 
-    private String orderNumber;
-
     @NotNull(message = "Payment method should be precised")
     private PaymentMethod paymentMethod;
 
