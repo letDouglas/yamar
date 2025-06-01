@@ -13,7 +13,7 @@ CREATE TABLE order_line
 (
     id             BIGINT AUTO_INCREMENT PRIMARY KEY,
     order_id       BIGINT,
-    product_id     INT,
+    product_id     VARCHAR(255),
     quantity DOUBLE NOT NULL,
     price_per_unit DECIMAL(19, 4),
     sub_total      DECIMAL(19, 4),
