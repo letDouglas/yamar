@@ -13,6 +13,12 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Import(TestcontainersConfiguration.class)
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -45,31 +51,6 @@ class ProductServiceApplicationTests {
         RestAssured.baseURI = "http://localhost";
         RestAssured.port = port;
         productsPath = basePath + "/products";
-    }
-
-    // --- HELPERS ---
-
-    private String createProductAndGetId(String name, String description, String category, double price, String originCountry) {
-        String requestBody = String.format("""
-                {
-                  "name": "%s",
-                  "description": "%s",
-                  "category": "%s",
-                  "images": ["https://example.com/image1.jpg"],
-                  "price": %.2f,
-                  "originCountry": "%s"
-                }
-                """, name, description, category, price, originCountry);
-
-        return RestAssured.given()
-                .contentType(ContentType.JSON)
-                .body(requestBody)
-                .when()
-                .post(productsPath)
-                .then()
-                .statusCode(201)
-                .extract()
-                .path("id");
     }
 
     // --- TESTS ---
@@ -242,5 +223,249 @@ class ProductServiceApplicationTests {
                 .body(Matchers.equalTo("false"));
     }
 
+    // --- TESTS Batch Operation---
+    @Test
+    void shouldGetProductsByIdsBatch() {
+        String charangoId = createProductAndGetId(
+                "Andean Charango",
+                "Handmade charango from Bolivia",
+                "CHARANGO",
+                250.50,
+                "Bolivia"
+        );
 
+        String quenaId = createProductAndGetId(
+                "Quena Andina",
+                "Traditional Andean flute",
+                "FLUTE",
+                120.00,
+                "Peru"
+        );
+
+        String panpipeId = createProductAndGetId(
+                "Panpipe",
+                "Wind instrument from the Andes",
+                "FLUTE",
+                100.00,
+                "Ecuador"
+        );
+
+        String batchRequestBody = String.format("""
+                {
+                  "productIds": ["%s", "%s", "%s"]
+                }
+                """, charangoId, quenaId, panpipeId);
+
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(batchRequestBody)
+                .post(productsPath + "/batch")
+                .then()
+                .statusCode(200)
+                .body("size()", Matchers.equalTo(3))
+                .body("id", Matchers.hasItems(charangoId, quenaId, panpipeId))
+                .body("name", Matchers.hasItems("Andean Charango", "Quena Andina", "Panpipe"))
+                .body("price", Matchers.hasItems(250.5f, 120.0f, 100.0f))
+                .body("originCountry", Matchers.hasItems("Bolivia", "Peru", "Ecuador"));
+    }
+
+    @Test
+    void shouldReturnValidationErrorForEmptyBatchRequest() {
+        String emptyBatchRequest = """
+                {
+                  "productIds": []
+                }
+                """;
+
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(emptyBatchRequest)
+                .post(productsPath + "/batch")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void shouldReturnValidationErrorForMissingProductIds() {
+        String invalidRequest = "{}";
+
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(invalidRequest)
+                .post(productsPath + "/batch")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void shouldReturnValidationErrorForNullProductIds() {
+        String nullRequest = """
+                {
+                  "productIds": null
+                }
+                """;
+
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(nullRequest)
+                .post(productsPath + "/batch")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void shouldHandlePartiallyMissingProductsInBatch() {
+        String existingId = createProductAndGetId(
+                "Existing Charango",
+                "This product exists",
+                "CHARANGO",
+                200.00,
+                "Bolivia"
+        );
+
+        String batchRequestBody = String.format("""
+                {
+                  "productIds": ["%s", "nonexistent-id-123"]
+                }
+                """, existingId);
+
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(batchRequestBody)
+                .post(productsPath + "/batch")
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    void shouldHandleLargeBatchRequest() {
+        String id1 = createProductAndGetId("Product 1", "Description 1", "CHARANGO", 100.0, "Bolivia");
+        String id2 = createProductAndGetId("Product 2", "Description 2", "FLUTE", 150.0, "Peru");
+        String id3 = createProductAndGetId("Product 3", "Description 3", "CHARANGO", 200.0, "Ecuador");
+
+        String batchRequestBody = String.format("""
+                {
+                  "productIds": ["%s", "%s", "%s"]
+                }
+                """, id1, id2, id3);
+
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(batchRequestBody)
+                .post(productsPath + "/batch")
+                .then()
+                .statusCode(200)
+                .body("size()", Matchers.equalTo(3));
+    }
+
+    @Test
+    void shouldValidateBatchSizeLimit() {
+        StringBuilder idsBuilder = new StringBuilder();
+        for (int i = 0; i < 101; i++) {
+            if (i > 0) idsBuilder.append(", ");
+            idsBuilder.append("\"fake-id-").append(i).append("\"");
+        }
+
+        String batchRequestBody = String.format("""
+                {
+                  "productIds": [%s]
+                }
+                """, idsBuilder.toString());
+
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(batchRequestBody)
+                .post(productsPath + "/batch")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void shouldMaintainOrderInBatchResponse() {
+        String id1 = createProductAndGetId("A-Product", "First product", "CHARANGO", 100.0, "Bolivia");
+        String id2 = createProductAndGetId("B-Product", "Second product", "FLUTE", 150.0, "Peru");
+        String id3 = createProductAndGetId("C-Product", "Third product", "CHARANGO", 200.0, "Ecuador");
+
+        String batchRequestBody = String.format("""
+                {
+                  "productIds": ["%s", "%s", "%s"]
+                }
+                """, id3, id1, id2);
+
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(batchRequestBody)
+                .post(productsPath + "/batch")
+                .then()
+                .statusCode(200)
+                .body("size()", Matchers.equalTo(3))
+                .body("name", Matchers.hasItems("A-Product", "B-Product", "C-Product"));
+    }
+
+    // --- TESTS -> Performance ---
+
+    @Test
+    void shouldPerformBatchRequestEfficiently() {
+        List<String> createdIds = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            String id = createProductAndGetId(
+                    "Instrument " + i,
+                    "Description " + i,
+                    "CHARANGO",
+                    100.0 + i,
+                    "Country " + i
+            );
+            createdIds.add(id);
+        }
+
+        String idsString = createdIds.stream()
+                .map(id -> "\"" + id + "\"")
+                .collect(Collectors.joining(", "));
+
+        String batchRequestBody = String.format("""
+                {
+                  "productIds": [%s]
+                }
+                """, idsString);
+
+        long startTime = System.currentTimeMillis();
+
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(batchRequestBody)
+                .post(productsPath + "/batch")
+                .then()
+                .statusCode(200)
+                .body("size()", Matchers.equalTo(10));
+
+        long endTime = System.currentTimeMillis();
+        long executionTime = endTime - startTime;
+
+        assertTrue(executionTime < 1000, "Batch request took too long: " + executionTime + "ms");
+    }
+
+    // --- HELPERS ---
+
+    private String createProductAndGetId(String name, String description, String category, double price, String originCountry) {
+        String requestBody = String.format("""
+                {
+                  "name": "%s",
+                  "description": "%s",
+                  "category": "%s",
+                  "images": ["https://example.com/image1.jpg"],
+                  "price": %.2f,
+                  "originCountry": "%s"
+                }
+                """, name, description, category, price, originCountry);
+
+        return RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(requestBody)
+                .when()
+                .post(productsPath)
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("id");
+    }
 }
