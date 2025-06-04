@@ -1,5 +1,10 @@
 package com.yamar.orderservice.service;
 
+import com.yamar.orderservice.client.inventory.InventoryClient;
+import com.yamar.orderservice.client.inventory.StockRequest;
+import com.yamar.orderservice.client.product.ProductBatchRequest;
+import com.yamar.orderservice.client.product.ProductClient;
+import com.yamar.orderservice.client.product.ProductResponse;
 import com.yamar.orderservice.dto.OrderLineRequest;
 import com.yamar.orderservice.dto.OrderRequest;
 import com.yamar.orderservice.dto.OrderResponse;
@@ -25,13 +30,30 @@ public class OrderService {
     private final OrderNumberGenerator orderNumberGenerator;
     private final OrderLineMapper orderLineMapper;
     private final OrderTotalCalculator totalCalculator;
+    private final ProductClient productClient;
+    private final InventoryClient inventoryClient;
 
     @Transactional
     public OrderResponse createOrder(OrderRequest request) {
+        // TODO - Implement Saga Pattern
         // TODO: Call Customer service
+        List<String> requestedProductIds = request.getProducts().stream()
+                .map(p -> p.getProductId())
+                .toList();
+        ProductBatchRequest requestedProducts = ProductBatchRequest.
+                builder()
+                .productIds(requestedProductIds)
+                .build();
+
+        List<ProductResponse> verifiedProducts = productClient.getProductsByIds(requestedProducts);
+
+        // TODO: Call Inventory Service and verify product availability
+
 
         var order = orderMapper.toOrder(request);
         order.setOrderNumber(orderNumberGenerator.generate());
+
+        // TODO: Publish asycn event: Order(OrderPlaced) -> inventory-ms
 
         List<OrderLine> orderLines = request.getProducts().stream()
                 .map(product -> {

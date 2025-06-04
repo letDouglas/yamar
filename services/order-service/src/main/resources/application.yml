@@ -22,5 +22,9 @@ server:
   servlet:
     context-path: /api/v1
 
-
-
+application:
+  config:
+    inventory-service:
+      url: http://localhost:8043/api/v1/inventory
+    product-service:
+      url: http://localhost:8043/api/v1/products
