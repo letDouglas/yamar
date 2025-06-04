@@ -1,5 +1,6 @@
 package com.yamar.productservice.controller;
 
+import com.yamar.productservice.dto.ProductBatchRequest;
 import com.yamar.productservice.dto.ProductRequest;
 import com.yamar.productservice.dto.ProductResponse;
 import com.yamar.productservice.dto.ProductUpdateRequest;
@@ -24,6 +25,10 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(productRequest));
     }
 
+    @PostMapping("/batch")
+    public ResponseEntity<List<ProductResponse>> getProductsByIds(@RequestBody ProductBatchRequest request) {
+        return ResponseEntity.ok(productService.getProductsByIds(request));
+    }
 
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAllProducts() {
