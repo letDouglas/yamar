@@ -1,7 +1,9 @@
 package com.yamar.inventoryservice.controller;
 
+import com.yamar.inventoryservice.dto.BatchStockRequest;
 import com.yamar.inventoryservice.dto.StockRequest;
 import com.yamar.inventoryservice.service.InventoryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,10 +18,16 @@ public class InventoryController {
 
     private final InventoryService service;
 
-    @PostMapping("/check-stock")
+    @PostMapping("/stock/check")
     public ResponseEntity<Boolean> isInStock(
             @RequestBody StockRequest request) {
         return ResponseEntity.ok(service.isInStock(request));
+    }
+
+    @PostMapping("/stock/check/batch")
+    public ResponseEntity<Boolean> isInStock(
+            @Valid @RequestBody BatchStockRequest request) {
+        return ResponseEntity.ok(service.areInStock(request));
     }
 
 }
