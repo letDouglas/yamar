@@ -40,6 +40,8 @@ public class GlobalExceptionHandler {
         Map<String, Object> body = new HashMap<>();
         body.put("error", ex.getMessage());
         body.put("missingProductIds", ex.getMissingIds());
+        body.put("status", HttpStatus.NOT_FOUND.value());
+
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
 }

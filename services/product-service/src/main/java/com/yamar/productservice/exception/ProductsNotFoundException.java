@@ -6,7 +6,7 @@ public class ProductsNotFoundException extends RuntimeException {
     private final List<String> missingIds;
 
     public ProductsNotFoundException(List<String> missingIds) {
-        super("Products not found for IDs: " + String.join(", ", missingIds));
+        super("Some products were not found");
         this.missingIds = missingIds;
     }
 
@@ -14,3 +14,4 @@ public class ProductsNotFoundException extends RuntimeException {
         return missingIds;
     }
 }
+
