@@ -13,5 +13,5 @@ public class PurchasedRequest {
     @NotNull(message = "Product is mandatory")
     private String productId;
     @Positive(message = "Quantity is mandatory")
-    private double quantity;
+    private Integer quantity;
 }

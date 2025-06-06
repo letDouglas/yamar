@@ -9,6 +9,7 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class StockRequest {
 
     @NotBlank(message = "Product ID cannot be blank")

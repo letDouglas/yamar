@@ -41,6 +41,10 @@ public class Order {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdDate;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatus orderStatus;
+
     @LastModifiedDate
     private LocalDateTime lastModifiedDate;
 }
