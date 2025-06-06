@@ -27,4 +27,4 @@ application:
     inventory-service:
       url: http://localhost:8043/api/v1/inventory
     product-service:
-      url: http://localhost:8043/api/v1/products
+      url: http://localhost:8041/api/v1/products

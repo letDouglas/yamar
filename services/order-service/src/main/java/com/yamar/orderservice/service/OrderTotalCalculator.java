@@ -5,6 +5,7 @@ import com.yamar.orderservice.model.OrderLine;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @Component
@@ -29,6 +30,7 @@ public class OrderTotalCalculator {
                 line.setSubTotal(calculateSubTotal(line))
         );
 
-        return calculateTotalAmount(order.getOrderLines());
+        return calculateTotalAmount(order.getOrderLines())
+                .setScale(2, RoundingMode.HALF_UP);
     }
 }

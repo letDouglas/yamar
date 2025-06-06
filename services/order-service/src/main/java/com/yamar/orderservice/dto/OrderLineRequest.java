@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @Builder
 public class OrderLineRequest {
     private String productId;
-    private double quantity;
+    private Integer quantity;
     private BigDecimal pricePerUnit;
 }
 

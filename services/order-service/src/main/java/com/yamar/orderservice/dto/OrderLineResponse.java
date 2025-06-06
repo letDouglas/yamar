@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public record OrderLineResponse(
         Long id,
-        double quantity,
+        Integer quantity,
         String productId,
         BigDecimal pricePerUnit,
         BigDecimal subTotal

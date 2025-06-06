@@ -24,7 +24,7 @@ public class OrderLine {
     private String productId;
 
     @Column(nullable = false)
-    private double quantity;
+    private Integer quantity;
 
     private BigDecimal pricePerUnit;
     private BigDecimal subTotal;
