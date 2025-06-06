@@ -19,15 +19,14 @@ public class InventoryController {
     private final InventoryService service;
 
     @PostMapping("/stock/check")
-    public ResponseEntity<Boolean> isInStock(
+    public ResponseEntity<Boolean> checkStockForProduct(
             @RequestBody StockRequest request) {
         return ResponseEntity.ok(service.isInStock(request));
     }
 
     @PostMapping("/stock/check/batch")
-    public ResponseEntity<Boolean> isInStock(
+    public ResponseEntity<Boolean> checkStockForProducts(
             @Valid @RequestBody BatchStockRequest request) {
         return ResponseEntity.ok(service.areInStock(request));
     }
-
 }
