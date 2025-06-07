@@ -6,6 +6,8 @@ import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.servers.Server;
+import jakarta.servlet.ServletContext;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,12 +16,15 @@ import java.util.List;
 @Configuration
 public class OpenAPIConfig {
 
+    @Value("${server.port}")
+    private int port;
+
     @Bean
-    public OpenAPI customOpenAPI() {
+    public OpenAPI customOpenAPI(ServletContext servletContext) {
         return new OpenAPI()
                 .info(apiInfo())
                 .externalDocs(externalDocs())
-                .servers(apiServers());
+                .servers(apiServers(servletContext));
     }
 
     private Info apiInfo() {
@@ -41,11 +46,19 @@ public class OpenAPIConfig {
                 .url("https://xmor.com/docs/product-service");
     }
 
-    private List<Server> apiServers() {
-        return List.of(
-                new Server().url("http://localhost:8041").description("Local Dev Server"),
-                new Server().url("https://xmor.com/product-service").description("Production Server")
-        );
+    private List<Server> apiServers(ServletContext servletContext) {
+        String contextPath = servletContext.getContextPath(); // es: /api/v1
+        String localUrl = String.format("http://localhost:%d%s", port, contextPath);
+        String prodUrl = "https://xmor.com/product-service";
+
+        Server localServer = new Server()
+                .url(localUrl)
+                .description("Local Dev Server");
+
+        Server prodServer = new Server()
+                .url(prodUrl)
+                .description("Production Server");
+
+        return List.of(localServer, prodServer);
     }
 }
-
