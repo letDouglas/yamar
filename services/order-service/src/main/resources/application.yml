@@ -28,3 +28,9 @@ application:
       url: http://localhost:8043/api/v1/inventory
     product-service:
       url: http://localhost:8041/api/v1/products
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /api-docs
