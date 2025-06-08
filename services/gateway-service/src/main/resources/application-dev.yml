@@ -1,0 +1,21 @@
+api-config:
+  base-path: /api/v1
+  server-description: API Gateway Development
+
+api-docs-discovery:
+  services:
+    - name: Product Service
+      url: ${api-config.base-path}/api-docs
+      serviceUrl: ${downstream-services.product-service.url}
+      contextPath: ${api-config.base-path}
+
+downstream-services:
+  product-service:
+    url: http://localhost:8041
+
+keycloak:
+  issuer-uri: http://localhost:9099/realms/derain-yamar
+
+logging:
+  level:
+    com.yamar.gatewayservice: DEBUG

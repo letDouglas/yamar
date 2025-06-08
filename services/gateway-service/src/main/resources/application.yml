@@ -1,25 +1,31 @@
+server:
+  port: ${GATEWAY_PORT:9090}
+
 spring:
   application:
     name: gateway-service
+  profiles:
+    active: dev
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: product-service
+              uri: ${downstream-services.product-service.url}
+              predicates:
+                - Path=${api-config.base-path}/products/**
 
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:9099/realms/derain-yamar
+          issuer-uri: ${keycloak.issuer-uri}
 
-server:
-  port: 8222
-
-application:
-  config:
-    services:
-      product:
-        url: http://localhost:8041
-        path: /api/v1/products/**
-      order:
-        url: http://localhost:8042
-        path: /api/v1/orders/**
-      inventory:
-        url: http://localhost:8043
-        path: /api/v1/inventory/**
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    config-url: /v3/api-docs/swagger-config
+  api-docs:
+    path: /v3/api-docs
