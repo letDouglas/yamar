@@ -16,7 +16,14 @@ spring:
               uri: ${downstream-services.product-service.url}
               predicates:
                 - Path=${api-config.base-path}/products/**
-
+            - id: order-service
+              uri: ${downstream-services.order-service.url}
+              predicates:
+                - Path=${api-config.base-path}/orders/**
+            - id: inventory-service
+              uri: ${downstream-services.inventory-service.url}
+              predicates:
+                - Path=${api-config.base-path}/inventory/**
   security:
     oauth2:
       resourceserver:
