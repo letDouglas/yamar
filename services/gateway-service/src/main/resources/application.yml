@@ -11,19 +11,70 @@ spring:
     gateway:
       server:
         webflux:
+          httpclient:
+            connect-timeout: 2000
+            response-timeout: 5s
           routes:
             - id: product-service
               uri: ${downstream-services.product-service.url}
               predicates:
                 - Path=${api-config.base-path}/products/**
+              filters:
+                - name: Retry
+                  args:
+                    retries: 3
+                    methods: GET,POST,PUT,DELETE
+                    series: SERVER_ERROR
+                    backoff:
+                      firstBackoff: 2s
+                      maxBackoff: 8s
+                      factor: 2
+                      basedOnPreviousValue: true
+                - name: CircuitBreaker
+                  args:
+                    name: product-service
+                    fallbackUri: forward:/fallback/serviceUnavailable
+
             - id: order-service
               uri: ${downstream-services.order-service.url}
               predicates:
                 - Path=${api-config.base-path}/orders/**
+              filters:
+                - name: Retry
+                  args:
+                    retries: 2
+                    methods: GET,POST,PUT,DELETE
+                    series: SERVER_ERROR
+                    backoff:
+                      firstBackoff: 1s
+                      maxBackoff: 3s
+                      factor: 2
+                      basedOnPreviousValue: true
+                - name: CircuitBreaker
+                  args:
+                    name: order-service
+                    fallbackUri: forward:/fallback/serviceUnavailable
+
             - id: inventory-service
               uri: ${downstream-services.inventory-service.url}
               predicates:
                 - Path=${api-config.base-path}/inventory/**
+              filters:
+                - name: Retry
+                  args:
+                    retries: 3
+                    methods: GET,POST,PUT,DELETE
+                    series: SERVER_ERROR
+                    backoff:
+                      firstBackoff: 1500ms
+                      maxBackoff: 6s
+                      factor: 2
+                      basedOnPreviousValue: true
+                - name: CircuitBreaker
+                  args:
+                    name: inventory-service
+                    fallbackUri: forward:/fallback/serviceUnavailable
+
   security:
     oauth2:
       resourceserver:
@@ -36,3 +87,44 @@ springdoc:
     config-url: /v3/api-docs/swagger-config
   api-docs:
     path: /v3/api-docs
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        failureRateThreshold: 50
+        slowCallDurationThreshold: 2s
+        slowCallRateThreshold: 100
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        waitDurationInOpenState: 5s
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        registerHealthIndicator: true
+    instances:
+      product-service:
+        baseConfig: default
+        slowCallDurationThreshold: 3s
+      order-service:
+        baseConfig: default
+        slowCallDurationThreshold: 1s
+      inventory-service:
+        baseConfig: default
+        slowCallDurationThreshold: 2s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,circuitbreakers,circuitbreakerevents,metrics
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+    circuitbreakers:
+      enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        resilience4j.circuitbreaker.calls: true

@@ -22,7 +22,9 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/webjars/**",
                                 "/favicon.ico",
-                                "/api/v1/api-docs/**"
+                                "/api/v1/api-docs/**",
+                                "/fallback/**",
+                                "/actuator/**"
                         ).permitAll()
                         .anyExchange().authenticated()
                 )
