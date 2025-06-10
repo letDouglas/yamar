@@ -1,0 +1,5 @@
+kafka:
+  clusters:
+    - name: local
+      bootstrapServers: kafka:9092
+      schemaRegistry: http://schema-registry:8081

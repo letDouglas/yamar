@@ -3,7 +3,7 @@ services:
     image: mongo:7
     container_name: yamar-mongo-db
     ports:
-      - 27020:27017
+      - "27020:27017"
     volumes:
       - mongo:/data/db
     environment:
@@ -17,7 +17,7 @@ services:
     container_name: yamar-mongo-express
     restart: always
     ports:
-      - 9082:8081
+      - "9082:8081"
     environment:
       - ME_CONFIG_MONGODB_ADMINUSERNAME=derain
       - ME_CONFIG_MONGODB_ADMINPASSWORD=derain
@@ -61,7 +61,7 @@ services:
     container_name: yamar-keycloak
     image: quay.io/keycloak/keycloak:26.1.5
     ports:
-      - 9099:8080
+      - "9099:8080"
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: derain
       KC_BOOTSTRAP_ADMIN_PASSWORD: derain
@@ -78,6 +78,60 @@ services:
     command:
       - "start-dev"
 
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    hostname: kafka
+    container_name: yamar-kafka
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    environment:
+      CLUSTER_ID: 'JaOAx9PUTp-srOD9QmInAg'
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_LISTENERS: 'PLAINTEXT://:9092,CONTROLLER://:29093,PLAINTEXT_HOST://:29092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+    networks:
+      - yamar-net
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: yamar-kafka-ui
+    ports:
+      - "8082:8080"
+    environment:
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    volumes:
+      - ./kafka-ui-config/config.yml:/etc/kafkaui/dynamic_config.yaml
+    depends_on:
+      - kafka
+    networks:
+      - yamar-net
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.6.1
+    hostname: schema-registry
+    container_name: yamar-schema-registry
+    depends_on:
+      - kafka
+    ports:
+      - "8084:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:9092'
+      SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
+    networks:
+      - yamar-net
+
 networks:
   yamar-net:
     driver: bridge
@@ -86,3 +140,4 @@ volumes:
   mongo:
   mysql-microservices:
   mysql-keycloak:
+  kafka-data:
