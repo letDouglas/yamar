@@ -13,6 +13,7 @@ import com.yamar.orderservice.dto.PurchasedRequest;
 import com.yamar.orderservice.exception.EntityNotFoundException;
 import com.yamar.orderservice.exception.InsufficientStockException;
 import com.yamar.orderservice.exception.ProductNotFoundException;
+import com.yamar.orderservice.kafka.OrderEventProducer;
 import com.yamar.orderservice.mapper.OrderLineMapper;
 import com.yamar.orderservice.mapper.OrderMapper;
 import com.yamar.orderservice.model.OrderLine;
@@ -21,6 +22,7 @@ import com.yamar.orderservice.repository.OrderRepository;
 import com.yamar.orderservice.utils.OrderNumberGenerator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderService {
 
     private final OrderRepository orderRepository;
@@ -39,6 +42,7 @@ public class OrderService {
     private final OrderTotalCalculator totalCalculator;
     private final ProductClient productClient;
     private final InventoryClient inventoryClient;
+    private final OrderEventProducer orderEventProducer;
 
     @Transactional
     public OrderResponse createOrder(OrderRequest request) {
@@ -105,8 +109,9 @@ public class OrderService {
 
         var savedOrder = orderRepository.save(order);
 
-        // ✅ TODO: 4. [ASYNC] Publish OrderPlaced event (Kafka or RabbitMQ) consumed by payment and inventory.
-
+        // OrderPlaced event (Kafka or RabbitMQ) consumed by payment and inventory.
+        log.info("Ordine {} salvato. Richiesta di pubblicazione dell'evento inoltrata.", savedOrder.getOrderNumber());
+        orderEventProducer.sendOrderPlacedEvent(savedOrder);
 
         // TODO: 5. [CLEANUP] Refactor → move validations to separate services (SRP)
         return orderMapper.toDto(savedOrder);

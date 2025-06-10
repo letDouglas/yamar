@@ -28,12 +28,27 @@ spring:
         jwt:
           issuer-uri: http://localhost:9099/realms/derain-yamar
 
+  kafka:
+    bootstrap-servers: localhost:29092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      properties:
+        schema.registry.url: http://localhost:8084
+        auto.register.schemas: true
+        acks: all
+        enable.idempotence: true
+
 application:
   config:
     inventory-service:
       url: http://localhost:8043/api/v1/inventory
     product-service:
       url: http://localhost:8041/api/v1/products
+
+    kafka:
+      topics:
+        orders: "orders.v1"
 
 springdoc:
   swagger-ui:
