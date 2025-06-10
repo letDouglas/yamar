@@ -13,7 +13,7 @@ spring:
         webflux:
           httpclient:
             connect-timeout: 2000
-            response-timeout: 5s
+            response-timeout: 10s
           routes:
             - id: product-service
               uri: ${downstream-services.product-service.url}
@@ -23,7 +23,7 @@ spring:
                 - name: Retry
                   args:
                     retries: 3
-                    methods: GET,POST,PUT,DELETE
+                    methods: GET
                     series: SERVER_ERROR
                     backoff:
                       firstBackoff: 2s
@@ -43,7 +43,7 @@ spring:
                 - name: Retry
                   args:
                     retries: 2
-                    methods: GET,POST,PUT,DELETE
+                    methods: GET
                     series: SERVER_ERROR
                     backoff:
                       firstBackoff: 1s
@@ -63,7 +63,7 @@ spring:
                 - name: Retry
                   args:
                     retries: 3
-                    methods: GET,POST,PUT,DELETE
+                    methods: GET
                     series: SERVER_ERROR
                     backoff:
                       firstBackoff: 1500ms
@@ -105,13 +105,13 @@ resilience4j:
     instances:
       product-service:
         baseConfig: default
-        slowCallDurationThreshold: 3s
+        slowCallDurationThreshold: 4s
       order-service:
         baseConfig: default
-        slowCallDurationThreshold: 1s
+        slowCallDurationThreshold: 5s
       inventory-service:
         baseConfig: default
-        slowCallDurationThreshold: 2s
+        slowCallDurationThreshold: 4s
 
 management:
   endpoints:
