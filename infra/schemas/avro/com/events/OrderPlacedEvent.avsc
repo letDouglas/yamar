@@ -1,0 +1,60 @@
+{
+  "type": "record",
+  "namespace": "com.yamar.events",
+  "name": "OrderPlacedEvent",
+  "doc": "Event published when an order is successfully created.",
+  "fields": [
+    {
+      "name": "orderId",
+      "type": "long",
+      "doc": "Numeric order ID from the database"
+    },
+    {
+      "name": "orderNumber",
+      "type": "string",
+      "doc": "UUID or human-readable order code"
+    },
+    {
+      "name": "customerId",
+      "type": "string",
+      "doc": "ID of the customer who placed the order"
+    },
+    {
+      "name": "totalAmount",
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 10,
+        "scale": 2
+      },
+      "doc": "Total order amount"
+    },
+    {
+      "name": "paymentMethod",
+      "type": "string",
+      "doc": "Chosen payment method"
+    },
+    {
+      "name": "products",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "PurchasedProductInfo",
+          "doc": "Details of a purchased product in the order.",
+          "fields": [
+            {
+              "name": "productId",
+              "type": "string"
+            },
+            {
+              "name": "quantity",
+              "type": "int"
+            }
+          ]
+        }
+      },
+      "doc": "List of purchased products"
+    }
+  ]
+}
