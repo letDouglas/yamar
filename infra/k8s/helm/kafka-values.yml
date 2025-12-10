@@ -1,0 +1,30 @@
+# Bitnami Kafka Chart Overrides
+image:
+  tag: 3.6.1
+
+# Enable KRaft (No Zookeeper)
+kraft:
+  enabled: true
+
+# Listeners configuration
+listeners:
+  client:
+    protocol: PLAINTEXT
+  controller:
+    protocol: PLAINTEXT
+  interbroker:
+    protocol: PLAINTEXT
+
+# Persistence disabled for Kind speed
+persistence:
+  enabled: false
+
+# Allow topic creation by producers (simplifies Dev loop)
+autoCreateTopicsEnable: true
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 512Mi
+  limits:
+    memory: 1Gi

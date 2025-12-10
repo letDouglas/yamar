@@ -1,0 +1,28 @@
+# Bitnami MongoDB Chart Overrides
+image:
+  tag: 7.0.5
+
+architecture: standalone
+
+auth:
+  enabled: true
+  # Master switch: Read ALL credentials from this secret
+  existingSecret: "yamar-secrets"
+
+  # Map the Root password to this specific key in the secret
+  rootPasswordKey: "mongodb-root-password"
+
+  # Create the specific application user
+  usernames: [ "derain" ]
+  databases: [ "product" ]
+  # Note: The chart will auto-read 'mongodb-passwords' from the secret for this user.
+
+persistence:
+  enabled: false
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi

@@ -1,0 +1,33 @@
+# Bitnami MySQL Chart Overrides
+image:
+  tag: 9.3.0
+
+auth:
+  # Do not auto-generate passwords, read from existing secret
+  existingSecret: "yamar-secrets"
+  rootPasswordKey: "mysql-root-password"
+  # Default database to create
+
+  # We force the username to be empty, so it relies on root.
+  username: ""
+
+  database: "orders"
+
+primary:
+  # Persistence is disabled for Kind speed (Ephemeral), enable for persistence
+  persistence:
+    enabled: false
+
+  # Custom Init Script to create the second database (Inventory)
+  initdbScripts:
+    init_inventory_db.sql: |
+      CREATE DATABASE IF NOT EXISTS inventory;
+      GRANT ALL PRIVILEGES ON inventory.* TO 'root'@'%';
+      FLUSH PRIVILEGES;
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
