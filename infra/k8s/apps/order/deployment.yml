@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  labels:
+    app: order-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          image: yamar-order-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8042
+          envFrom:
+            - configMapRef:
+                name: order-config
+          env:
+            # -----------------------------------------------------------------
+            # SECURITY INJECTION
+            # Root password for MySQL retrieved from Secrets
+            # -----------------------------------------------------------------
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: yamar-secrets
+                  key: mysql-root-password
+          resources:
+            requests:
+              memory: "300Mi"
+              cpu: "150m"
+            limits:
+              memory: "600Mi"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8042
+            initialDelaySeconds: 20
+            periodSeconds: 15

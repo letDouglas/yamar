@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+  labels:
+    app: product-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: product-service
+  template:
+    metadata:
+      labels:
+        app: product-service
+    spec:
+      containers:
+        - name: product-service
+          image: yamar-product-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8041
+          envFrom:
+            - configMapRef:
+                name: product-config
+          env:
+            # -----------------------------------------------------------------
+            # SECURITY INJECTION
+            # Password is retrieved from the Kubernetes Secret 'yamar-secrets'
+            # -----------------------------------------------------------------
+            - name: SPRING_DATA_MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: yamar-secrets
+                  key: mongodb-passwords
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8041
+            initialDelaySeconds: 15
+            periodSeconds: 15
