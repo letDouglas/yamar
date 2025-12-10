@@ -1,0 +1,93 @@
+# -----------------------------------------------------------------------------
+# ARCHITECTURE DECISION: Manual Deployment vs. Helm Chart
+# -----------------------------------------------------------------------------
+# This Keycloak instance is deployed using a manual Kubernetes Deployment manifest.
+# This approach was chosen pragmatically for the local development (Kind)
+# environment to prioritize startup speed and reduce configuration complexity.
+#
+# The official Bitnami Helm chart is the recommended path for pre-production
+# and production environments to ensure high availability, security, and
+# long-term maintainability.
+# -----------------------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  labels:
+    app: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:26.1.5
+          # Use 'start-dev' for local development. This enables HTTP and is faster.
+          args: ["start-dev"]
+          ports:
+            - containerPort: 8080
+          env:
+            # --- Admin Credentials (Bootstrap) ---
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              value: "derain"
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              value: "derain"
+
+            # --- Database Connection (MySQL) ---
+            - name: KC_DB
+              value: "mysql"
+            - name: KC_DB_URL_HOST
+              value: "mysql"
+            - name: KC_DB_URL_DATABASE
+              value: "keycloak"
+            - name: KC_DB_USERNAME
+              value: "root"
+            # SECURITY: Password is not stored here; it is injected from the k8s Secret.
+            - name: KC_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: yamar-secrets
+                  key: mysql-root-password
+
+            # --- Development Mode Network Configurations ---
+            - name: KC_HTTP_ENABLED
+              value: "true"
+            - name: KC_HOSTNAME_STRICT
+              value: "false"
+            - name: KC_HOSTNAME_STRICT_HTTPS
+              value: "false"
+            - name: KC_PROXY_HEADERS
+              value: "xforwarded"
+
+          # --- Resource Allocation ---
+          # Guarantees and limits prevent the Keycloak pod from consuming
+          # all cluster resources, ensuring stability for other microservices.
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+
+          # --- Health & Readiness Probes ---
+          # Keycloak is a heavy application and requires a significant startup time.
+          # These long initial delays prevent Kubernetes from prematurely killing the pod.
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10

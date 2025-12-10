@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  labels:
+    app: keycloak
+spec:
+  # Provides a stable internal DNS name (e.g., "keycloak.default.svc.cluster.local")
+  # for other microservices to use for token validation.
+  type: ClusterIP
+  selector:
+    app: keycloak
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
