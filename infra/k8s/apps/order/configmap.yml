@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-config
+  labels:
+    app: order-service
+data:
+  # -----------------------------------------------------------------------
+  # MySQL Connection Parameters
+  # -----------------------------------------------------------------------
+  SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/orders?allowPublicKeyRetrieval=true&useSSL=false"
+  SPRING_DATASOURCE_USERNAME: "root"
+
+  # -----------------------------------------------------------------------
+  # Kafka Configuration (Event Streaming)
+  # -----------------------------------------------------------------------
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  SPRING_KAFKA_PRODUCER_PROPERTIES_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+
+  # -----------------------------------------------------------------------
+  # Inter-Service Communication Endpoints
+  # -----------------------------------------------------------------------
+  APPLICATION_CONFIG_INVENTORY_SERVICE_URL: "http://inventory-service:8043/api/v1/inventory"
+  APPLICATION_CONFIG_PRODUCT_SERVICE_URL: "http://product-service:8041/api/v1/products"
+
+  # Identity Provider
+  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: "http://keycloak:8080/realms/derain-yamar"

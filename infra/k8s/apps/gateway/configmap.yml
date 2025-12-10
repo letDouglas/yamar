@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-config
+  labels:
+    app: gateway-service
+data:
+  # -----------------------------------------------------------------------
+  # Service Discovery Configuration
+  # Defines the internal DNS names for downstream microservices.
+  # -----------------------------------------------------------------------
+  DOWNSTREAM_SERVICES_PRODUCT_SERVICE_URL: "http://product-service:8041"
+  DOWNSTREAM_SERVICES_ORDER_SERVICE_URL: "http://order-service:8042"
+  DOWNSTREAM_SERVICES_INVENTORY_SERVICE_URL: "http://inventory-service:8043"
+
+  # -----------------------------------------------------------------------
+  # Identity Provider Configuration
+  # Points to the internal Keycloak service.
+  # -----------------------------------------------------------------------
+  KEYCLOAK_ISSUER_URIcon: "http://keycloak:8080/realms/derain-yamar"
