@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-initializer
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: db-init
+          image: mysql:8.0
+          command: [ "/bin/bash", "-c" ]
+          args:
+            - |
+              echo "Waiting for MySQL to become ready..."
+              until mysql -h mysql -u root -p$MYSQL_ROOT_PASSWORD -e "SELECT 1"; do
+                echo "MySQL is not yet available, retrying..."
+                sleep 5
+              done
+              
+              echo "MySQL is ready. Resetting databases..."
+              mysql -h mysql -u root -p$MYSQL_ROOT_PASSWORD <<EOF
+              -- Force drop and recreate inventory
+              DROP DATABASE IF EXISTS inventory;
+              CREATE DATABASE inventory;
+              GRANT ALL PRIVILEGES ON inventory.* TO 'root'@'%';
+
+              FLUSH PRIVILEGES;
+              EOF
+              
+              echo "✅ Database initialization completed successfully."
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: yamar-secrets
+                  key: mysql-root-password

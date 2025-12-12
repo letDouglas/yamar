@@ -27,11 +27,12 @@ spec:
                 name: gateway-config
           resources:
             requests:
-              memory: "256Mi"
+              memory: "350Mi"
               cpu: "100m"
             limits:
-              memory: "512Mi"
-              cpu: "500m"
+              # Aumentato da 512Mi a 768Mi per evitare OOMKilled
+              memory: "768Mi"
+              cpu: "1000m"
           # -------------------------------------------------------------------
           # Health Checks (Self-Healing)
           # K8s restarts the pod if liveness fails.
@@ -41,11 +42,12 @@ spec:
             httpGet:
               path: /actuator/health/liveness
               port: 9090
-            initialDelaySeconds: 10
-            periodSeconds: 10
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
               port: 9090
-            initialDelaySeconds: 5
+            initialDelaySeconds: 30
             periodSeconds: 10

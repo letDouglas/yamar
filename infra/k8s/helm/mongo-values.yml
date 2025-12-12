@@ -1,6 +1,16 @@
 # Bitnami MongoDB Chart Overrides
+
+# DEVELOPMENT ONLY: Allow latest tag
+# For production: use specific version tags or Bitnami Secure Images
+global:
+  security:
+    allowInsecureImages: true
+
+
 image:
-  tag: 7.0.5
+  registry: registry-1.docker.io
+  repository: bitnami/mongodb
+  tag: latest
 
 architecture: standalone
 

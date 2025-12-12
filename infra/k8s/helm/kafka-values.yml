@@ -1,6 +1,15 @@
 # Bitnami Kafka Chart Overrides
+
+# DEVELOPMENT ONLY: Allow latest tag
+# For production: use specific version tags or Bitnami Secure Images
+global:
+  security:
+    allowInsecureImages: true
+
 image:
-  tag: 3.6.1
+  registry: registry-1.docker.io
+  repository: bitnamilegacy/kafka
+  tag: latest
 
 # Enable KRaft (No Zookeeper)
 kraft:

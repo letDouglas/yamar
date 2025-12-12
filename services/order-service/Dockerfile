@@ -6,13 +6,17 @@ FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
 WORKDIR /app
 
 # Copy the pom.xml first to leverage Docker layer caching for dependencies
-COPY pom.xml .
+COPY services/order-service/pom.xml .
 
-# Download dependencies offline
-RUN mvn dependency:go-offline -B
+# -----------------------------------------------------------------------------
+# SHARED RESOURCES INJECTION
+# We copy the 'infra' directory from the project root into the container.
+# This allows the Avro Maven Plugin to find the schemas at ../../infra/schemas
+# -----------------------------------------------------------------------------
+COPY infra /infra
 
 # Copy the application source code
-COPY src ./src
+COPY services/order-service/src ./src
 
 # Package the application
 RUN mvn clean package -DskipTests

@@ -17,4 +17,4 @@ data:
   # Identity Provider Configuration
   # Points to the internal Keycloak service.
   # -----------------------------------------------------------------------
-  KEYCLOAK_ISSUER_URIcon: "http://keycloak:8080/realms/derain-yamar"
+  KEYCLOAK_ISSUER_URI: "http://keycloak:8080/realms/derain-yamar"

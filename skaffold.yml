@@ -1,0 +1,62 @@
+apiVersion: skaffold/v4beta1
+kind: Config
+metadata:
+  name: yamar-ecosystem
+
+build:
+  # ARCHITECTURAL DECISION: Tagging Strategy
+  # We use 'sha256' to ensure every build is immutable and traceable.
+  tagPolicy:
+    sha256: { }
+
+  # ---------------------------------------------------------------------------
+  # ARTIFACT DEFINITIONS
+  # CRITICAL: Context is set to '.' (Root) to allow access to shared /infra
+  # ---------------------------------------------------------------------------
+  artifacts:
+    # Product Service
+    - image: yamar-product-service
+      context: .
+      docker:
+        dockerfile: services/product-service/Dockerfile
+
+    # Order Service
+    - image: yamar-order-service
+      context: .
+      docker:
+        dockerfile: services/order-service/Dockerfile
+
+    # Inventory Service
+    - image: yamar-inventory-service
+      context: .
+      docker:
+        dockerfile: services/inventory-service/Dockerfile
+
+    # Gateway Service
+    - image: yamar-gateway-service
+      context: .
+      docker:
+        dockerfile: services/gateway-service/Dockerfile
+
+# -----------------------------------------------------------------------------
+# DEPLOYMENT PIPELINE
+# -----------------------------------------------------------------------------
+manifests:
+  rawYaml:
+    - infra/k8s/base/secrets.yml
+    - infra/k8s/routing/ingress.yml
+    - infra/k8s/apps/mysql/*.yml
+    #    - infra/k8s/jobs/db-init.yml
+    - infra/k8s/apps/**/*.yml
+
+deploy:
+  kubectl: { }
+
+# -----------------------------------------------------------------------------
+# PORT FORWARDING
+# -----------------------------------------------------------------------------
+portForward:
+  - resourceType: deployment
+    resourceName: gateway-service
+    port: 9090
+    localPort: 9090

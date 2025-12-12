@@ -5,14 +5,12 @@ FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
 
 WORKDIR /app
 
-# Copy the pom.xml first to leverage Docker layer caching for dependencies
-COPY pom.xml .
-
-# Download dependencies offline
-RUN mvn dependency:go-offline -B
+# Copy the pom.xml first to leverage Docker layer caching for dependencies.
+# NOTE: Path is relative to project root because Skaffold context is '.'
+COPY services/product-service/pom.xml .
 
 # Copy the application source code
-COPY src ./src
+COPY services/product-service/src ./src
 
 # Package the application
 RUN mvn clean package -DskipTests

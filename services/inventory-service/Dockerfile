@@ -6,13 +6,10 @@ FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
 WORKDIR /app
 
 # Copy the pom.xml first to leverage Docker layer caching for dependencies
-COPY pom.xml .
-
-# Download dependencies offline
-RUN mvn dependency:go-offline -B
+COPY services/inventory-service/pom.xml .
 
 # Copy the application source code
-COPY src ./src
+COPY services/inventory-service/src ./src
 
 # Package the application
 RUN mvn clean package -DskipTests
