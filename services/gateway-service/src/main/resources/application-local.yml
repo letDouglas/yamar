@@ -1,0 +1,14 @@
+downstream-services:
+  product-service:
+    url: http://localhost:8041
+  order-service:
+    url: http://localhost:8042
+  inventory-service:
+    url: http://localhost:8043
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://OUR_AUTH0_DOMAIN/

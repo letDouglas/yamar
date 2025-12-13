@@ -17,16 +17,9 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
 
   datasource:
-    url: jdbc:mysql://localhost:3312/inventory
     username: root
     password: password
     driver-class-name: com.mysql.cj.jdbc.Driver
-
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:9099/realms/derain-yamar
 
 springdoc:
   swagger-ui:
