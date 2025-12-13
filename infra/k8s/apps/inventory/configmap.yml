@@ -11,3 +11,5 @@ data:
   # -----------------------------------------------------------------------
   SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/inventory?allowPublicKeyRetrieval=true&useSSL=false"
   SPRING_DATASOURCE_USERNAME: "root"
+
+  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: "https://OUR_AUTH0_DOMAIN/"

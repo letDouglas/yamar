@@ -4,43 +4,26 @@ metadata:
   name: yamar-ecosystem
 
 build:
-  # ARCHITECTURAL DECISION: Tagging Strategy
-  # We use 'sha256' to ensure every build is immutable and traceable.
   tagPolicy:
     sha256: { }
-
-  # ---------------------------------------------------------------------------
-  # ARTIFACT DEFINITIONS
-  # CRITICAL: Context is set to '.' (Root) to allow access to shared /infra
-  # ---------------------------------------------------------------------------
   artifacts:
-    # Product Service
     - image: yamar-product-service
       context: .
       docker:
         dockerfile: services/product-service/Dockerfile
-
-    # Order Service
     - image: yamar-order-service
       context: .
       docker:
         dockerfile: services/order-service/Dockerfile
-
-    # Inventory Service
     - image: yamar-inventory-service
       context: .
       docker:
         dockerfile: services/inventory-service/Dockerfile
-
-    # Gateway Service
     - image: yamar-gateway-service
       context: .
       docker:
         dockerfile: services/gateway-service/Dockerfile
 
-# -----------------------------------------------------------------------------
-# DEPLOYMENT PIPELINE
-# -----------------------------------------------------------------------------
 manifests:
   rawYaml:
     - infra/k8s/base/secrets.yml
@@ -49,26 +32,23 @@ manifests:
     - infra/k8s/jobs/db-init.yml
     - infra/k8s/apps/**/*.yml
 
-deploy:
-  kubectl: { }
-
   helm:
     releases:
       - name: mongodb
         repo: https://charts.bitnami.com/bitnami
         remoteChart: mongodb
         valuesFiles: [ "infra/k8s/helm/mongo-values.yml" ]
-        wait: false
 
       - name: kafka
         repo: https://charts.bitnami.com/bitnami
         remoteChart: kafka
         valuesFiles: [ "infra/k8s/helm/kafka-values.yml" ]
         wait: false
-
       - name: schema-registry
         repo: https://charts.bitnami.com/bitnami
         remoteChart: schema-registry
         valuesFiles: [ "infra/k8s/helm/schema-registry-values.yml" ]
         wait: false
 
+deploy:
+  kubectl: { }
