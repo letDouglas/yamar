@@ -12,8 +12,8 @@ spring:
       server:
         webflux:
           httpclient:
-            connect-timeout: 2000
-            response-timeout: 10s
+            connect-timeout: 10000
+            response-timeout: 30s
           routes:
             - id: product-service
               uri: ${downstream-services.product-service.url}
@@ -89,29 +89,34 @@ springdoc:
     path: /v3/api-docs
 
 resilience4j:
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 30s
+
   circuitbreaker:
     configs:
       default:
         failureRateThreshold: 50
-        slowCallDurationThreshold: 2s
+        slowCallDurationThreshold: 10s
         slowCallRateThreshold: 100
         slidingWindowType: COUNT_BASED
         slidingWindowSize: 10
         minimumNumberOfCalls: 5
         permittedNumberOfCallsInHalfOpenState: 3
-        waitDurationInOpenState: 5s
+        waitDurationInOpenState: 10s
         automaticTransitionFromOpenToHalfOpenEnabled: true
         registerHealthIndicator: true
     instances:
       product-service:
         baseConfig: default
-        slowCallDurationThreshold: 4s
+        slowCallDurationThreshold: 10s
       order-service:
         baseConfig: default
-        slowCallDurationThreshold: 5s
+        slowCallDurationThreshold: 20s
       inventory-service:
         baseConfig: default
-        slowCallDurationThreshold: 4s
+        slowCallDurationThreshold: 10s
 
 management:
   endpoints:

@@ -35,4 +35,15 @@ springdoc:
     path: /api-docs
   show-actuator: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
 
