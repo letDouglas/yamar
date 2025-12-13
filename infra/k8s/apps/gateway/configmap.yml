@@ -12,9 +12,3 @@ data:
   DOWNSTREAM_SERVICES_PRODUCT_SERVICE_URL: "http://product-service:8041"
   DOWNSTREAM_SERVICES_ORDER_SERVICE_URL: "http://order-service:8042"
   DOWNSTREAM_SERVICES_INVENTORY_SERVICE_URL: "http://inventory-service:8043"
-
-  # -----------------------------------------------------------------------
-  # Identity Provider Configuration
-  # Points to the internal Keycloak service.
-  # -----------------------------------------------------------------------
-  KEYCLOAK_ISSUER_URI: "http://keycloak:8080/realms/derain-yamar"

@@ -46,17 +46,29 @@ manifests:
     - infra/k8s/base/secrets.yml
     - infra/k8s/routing/ingress.yml
     - infra/k8s/apps/mysql/*.yml
-    #    - infra/k8s/jobs/db-init.yml
+    - infra/k8s/jobs/db-init.yml
     - infra/k8s/apps/**/*.yml
 
 deploy:
   kubectl: { }
 
-# -----------------------------------------------------------------------------
-# PORT FORWARDING
-# -----------------------------------------------------------------------------
-portForward:
-  - resourceType: deployment
-    resourceName: gateway-service
-    port: 9090
-    localPort: 9090
+  helm:
+    releases:
+      - name: mongodb
+        repo: https://charts.bitnami.com/bitnami
+        remoteChart: mongodb
+        valuesFiles: [ "infra/k8s/helm/mongo-values.yml" ]
+        wait: false
+
+      - name: kafka
+        repo: https://charts.bitnami.com/bitnami
+        remoteChart: kafka
+        valuesFiles: [ "infra/k8s/helm/kafka-values.yml" ]
+        wait: false
+
+      - name: schema-registry
+        repo: https://charts.bitnami.com/bitnami
+        remoteChart: schema-registry
+        valuesFiles: [ "infra/k8s/helm/schema-registry-values.yml" ]
+        wait: false
+

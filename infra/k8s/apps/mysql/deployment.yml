@@ -28,8 +28,6 @@ spec:
                 secretKeyRef:
                   name: yamar-secrets
                   key: mysql-root-password
-            - name: MYSQL_DATABASE
-              value: "orders"
 
           resources:
             requests:
@@ -41,14 +39,14 @@ spec:
 
           livenessProbe:
             exec:
-              command: ["mysqladmin", "ping", "-h", "localhost"]
+              command: [ "mysqladmin", "ping", "-h", "localhost" ]
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 10
           readinessProbe:
             exec:
-              command: ["mysqladmin", "ping", "-h", "localhost"]
+              command: [ "mysqladmin", "ping", "-h", "localhost" ]
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5

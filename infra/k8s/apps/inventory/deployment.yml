@@ -14,6 +14,21 @@ spec:
       labels:
         app: inventory-service
     spec:
+
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox:latest
+          command:
+            - 'sh'
+            - '-c'
+            - |
+              echo "Waiting for MySQL..."
+              until nc -z mysql 3306; do 
+                echo "waiting for mysql:3306..."
+                sleep 2
+              done
+              echo "MySQL is up!"
+
       containers:
         - name: inventory-service
           image: yamar-inventory-service:latest
@@ -40,7 +55,15 @@ spec:
               memory: "512Mi"
           livenessProbe:
             httpGet:
-              path: /actuator/health/liveness
+              path: /api/v1/actuator/health/liveness
               port: 8043
-            initialDelaySeconds: 15
-            periodSeconds: 15
+            initialDelaySeconds: 180
+            periodSeconds: 20
+            failureThreshold: 10
+          readinessProbe:
+            httpGet:
+              path: /api/v1/actuator/health/readiness
+              port: 8043
+            initialDelaySeconds: 120
+            periodSeconds: 20
+            failureThreshold: 10

@@ -1,7 +1,6 @@
 # Bitnami Kafka Chart Overrides
 
 # DEVELOPMENT ONLY: Allow latest tag
-# For production: use specific version tags or Bitnami Secure Images
 global:
   security:
     allowInsecureImages: true
@@ -14,6 +13,22 @@ image:
 # Enable KRaft (No Zookeeper)
 kraft:
   enabled: true
+
+# COMBINED MODE CONFIGURATION
+controller:
+  replicaCount: 1
+  controllerOnly: false
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+
+# Disable separate broker pods
+broker:
+  replicaCount: 0
 
 # Listeners configuration
 listeners:
@@ -28,12 +43,23 @@ listeners:
 persistence:
   enabled: false
 
-# Allow topic creation by producers (simplifies Dev loop)
+# Allow topic creation by producers
 autoCreateTopicsEnable: true
 
-resources:
-  requests:
-    cpu: 200m
-    memory: 512Mi
-  limits:
-    memory: 1Gi
+service:
+  ports:
+    client: 9092
+
+# CRITICAL FIX: Use overrideConfiguration (new in chart 32.x+)
+# This properly overrides the default Kafka settings
+overrideConfiguration:
+  offsets.topic.replication.factor: 1
+  transaction.state.log.replication.factor: 1
+  transaction.state.log.min.isr: 1
+  default.replication.factor: 1
+  min.insync.replicas: 1
+  group.initial.rebalance.delay.ms: 0
+
+extraEnvVars:
+  - name: KAFKA_CFG_CONTROLLER_QUORUM_VOTERS
+    value: "0@kafka-controller-0.kafka-controller-headless.default.svc.cluster.local:9093"

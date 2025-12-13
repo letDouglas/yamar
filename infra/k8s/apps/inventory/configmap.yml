@@ -11,6 +11,3 @@ data:
   # -----------------------------------------------------------------------
   SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/inventory?allowPublicKeyRetrieval=true&useSSL=false"
   SPRING_DATASOURCE_USERNAME: "root"
-
-  # Identity Provider
-  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: "http://keycloak:8080/realms/derain-yamar"

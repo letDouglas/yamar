@@ -22,6 +22,3 @@ data:
   # -----------------------------------------------------------------------
   APPLICATION_CONFIG_INVENTORY_SERVICE_URL: "http://inventory-service:8043/api/v1/inventory"
   APPLICATION_CONFIG_PRODUCT_SERVICE_URL: "http://product-service:8041/api/v1/products"
-
-  # Identity Provider
-  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: "http://keycloak:8080/realms/derain-yamar"

@@ -1,0 +1,56 @@
+global:
+  security:
+    allowInsecureImages: true
+
+image:
+  registry: registry-1.docker.io
+  repository: bitnamilegacy/schema-registry
+  tag: latest
+
+kafka:
+  enabled: false
+
+externalKafka:
+  brokers:
+    - PLAINTEXT://kafka:9092
+
+persistence:
+  enabled: false
+
+extraEnvVars:
+  # CRITICAL FIX: Match Kafka's single-broker setup
+  - name: SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR
+    value: "1"
+
+  # Additional replication settings for single-broker
+  - name: SCHEMA_REGISTRY_LEADER_ELIGIBILITY
+    value: "true"
+
+  - name: SCHEMA_REGISTRY_DEBUG
+    value: "true"
+
+  # Increased timeouts for Kafka connection
+  - name: JAVA_TOOL_OPTIONS
+    value: "-Dkafkastore.init.timeout.ms=300000 -Dkafkastore.timeout.ms=300000 -Djava.net.preferIPv4Stack=true"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 1Gi
+
+initContainers:
+  - name: wait-for-kafka
+    image: busybox:latest
+    command:
+      - 'sh'
+      - '-c'
+      - |
+        echo "Waiting for Kafka..."
+        until nc -z kafka 9092; do 
+          echo "waiting..."
+          sleep 5
+        done
+        echo "Kafka is up! Waiting 15s more for topic creation..."
+        sleep 15

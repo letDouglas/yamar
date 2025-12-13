@@ -25,10 +25,13 @@ spec:
               
               echo "MySQL is ready. Resetting databases..."
               mysql -h mysql -u root -p$MYSQL_ROOT_PASSWORD <<EOF
-              -- Force drop and recreate inventory
-              DROP DATABASE IF EXISTS inventory;
-              CREATE DATABASE inventory;
+              -- Create Inventory
+              CREATE DATABASE IF NOT EXISTS inventory;
               GRANT ALL PRIVILEGES ON inventory.* TO 'root'@'%';
+              
+              -- Create Orders
+              CREATE DATABASE IF NOT EXISTS orders;
+              GRANT ALL PRIVILEGES ON orders.* TO 'root'@'%';
 
               FLUSH PRIVILEGES;
               EOF

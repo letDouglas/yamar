@@ -14,6 +14,21 @@ spec:
       labels:
         app: order-service
     spec:
+
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox:latest
+          command:
+            - 'sh'
+            - '-c'
+            - |
+              echo "Waiting for MySQL..."
+              until nc -z mysql 3306; do 
+                echo "waiting for mysql:3306..."
+                sleep 2
+              done
+              echo "MySQL is up!"
+
       containers:
         - name: order-service
           image: yamar-order-service:latest
@@ -41,7 +56,17 @@ spec:
               memory: "600Mi"
           livenessProbe:
             httpGet:
-              path: /actuator/health/liveness
+              path: /api/v1/actuator/health/liveness
               port: 8042
-            initialDelaySeconds: 20
-            periodSeconds: 15
+            initialDelaySeconds: 180
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 10
+          readinessProbe:
+            httpGet:
+              path: /api/v1/actuator/health/readiness
+              port: 8042
+            initialDelaySeconds: 120
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 10
