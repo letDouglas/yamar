@@ -7,6 +7,9 @@ spring:
   application:
     name: inventory-service
 
+  profiles:
+    active: local
+
   jpa:
     hibernate:
       ddl-auto: validate
@@ -20,6 +23,12 @@ spring:
     username: root
     password: password
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH0_ISSUER_URI:https://REPLACE_WITH_YOUR_DOMAIN.auth0.com/}
 
 springdoc:
   swagger-ui:

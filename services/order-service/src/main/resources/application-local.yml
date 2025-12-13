@@ -6,11 +6,9 @@ spring:
     producer:
       properties:
         schema.registry.url: http://localhost:8084
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: https://YOUR_AUTH0_DOMAIN/
+
+  config:
+    import: "optional:file:services/env.properties"
 
 application:
   config:

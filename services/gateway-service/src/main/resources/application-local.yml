@@ -6,9 +6,10 @@ downstream-services:
   inventory-service:
     url: http://localhost:8043
 
+logging:
+  level:
+    com.yamar.gatewayservice: DEBUG
+
 spring:
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: https://OUR_AUTH0_DOMAIN/
+  config:
+    import: "optional:file:services/env.properties"

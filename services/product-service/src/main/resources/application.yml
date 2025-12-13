@@ -6,12 +6,22 @@ server:
 spring:
   application:
     name: product-service
+
+  profiles:
+    active: local
+
   data:
     mongodb:
       username: derain
       password: derain
       database: product
       authentication-database: admin
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH0_ISSUER_URI:https://REPLACE_WITH_YOUR_DOMAIN.auth0.com/}
 
 springdoc:
   swagger-ui:

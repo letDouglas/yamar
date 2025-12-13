@@ -3,8 +3,6 @@ spring:
     mongodb:
       host: localhost
       port: 27020
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: https://YOUR_AUTH0_DOMAIN/
+
+  config:
+    import: "optional:file:services/env.properties"

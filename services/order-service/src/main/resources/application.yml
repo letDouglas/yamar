@@ -7,6 +7,9 @@ spring:
   application:
     name: order-service
 
+  profiles:
+    active: local
+
   jpa:
     hibernate:
       ddl-auto: validate
@@ -29,6 +32,12 @@ spring:
         auto.register.schemas: true
         acks: all
         enable.idempotence: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH0_ISSUER_URI:https://REPLACE_WITH_YOUR_DOMAIN.auth0.com/}
 
 application:
   config:
