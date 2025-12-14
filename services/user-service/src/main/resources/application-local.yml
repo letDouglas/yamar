@@ -1,0 +1,17 @@
+spring:
+  config:
+    import: "optional:file:services/env.properties"
+
+  datasource:
+    url: jdbc:mysql://localhost:3312/user
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: TRACE
+    org.springframework.security.oauth2: TRACE
+    org.springframework.web.client: DEBUG
+    org.springframework.web.reactive.function.client: DEBUG
+    org.apache.http: DEBUG
+    sun.net.www.protocol.http: DEBUG
+    sun.net.www.protocol.https: DEBUG

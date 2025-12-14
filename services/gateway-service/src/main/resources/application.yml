@@ -79,6 +79,16 @@ spring:
                     name: inventory-service
                     fallbackUri: forward:/fallback/serviceUnavailable
 
+            - id: user-service
+              uri: ${downstream-services.user-service.url}
+              predicates:
+                - Path=${api-config.base-path}/users/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: user-service
+                    fallbackUri: forward:/fallback/serviceUnavailable
+
   security:
     oauth2:
       resourceserver:

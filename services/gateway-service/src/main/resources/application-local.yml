@@ -5,6 +5,8 @@ downstream-services:
     url: http://localhost:8042
   inventory-service:
     url: http://localhost:8043
+  user-service:
+    url: http://localhost:8044
 
 logging:
   level:
