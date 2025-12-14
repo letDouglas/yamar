@@ -26,6 +26,8 @@ public class Order {
 
     private String customerId;
 
+    private String customerEmail;
+
     @Column(nullable = false, unique = true, updatable = false)
     private String orderNumber;
 

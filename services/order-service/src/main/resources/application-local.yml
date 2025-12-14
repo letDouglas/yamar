@@ -12,7 +12,9 @@ spring:
 
 application:
   config:
-    inventory-service:
-      url: http://localhost:8043/api/v1/inventory
     product-service:
       url: http://localhost:8041/api/v1/products
+    inventory-service:
+      url: http://localhost:8043/api/v1/inventory
+    user-service:
+      url: http://localhost:8044/api/v1/users

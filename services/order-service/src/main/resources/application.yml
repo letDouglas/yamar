@@ -45,6 +45,9 @@ application:
       topics:
         orders: "orders.v1"
 
+    user-service:
+      url: ${USER_SERVICE_URL:http://user-service:8044/api/v1/users}
+
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
