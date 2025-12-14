@@ -4,5 +4,11 @@ spring:
       host: localhost
       port: 27020
 
-  config:
-    import: "optional:file:services/env.properties"
+  elasticsearch:
+    uris: http://localhost:9200
+
+  kafka:
+    bootstrap-servers: localhost:29092
+    producer:
+      properties:
+        schema.registry.url: http://localhost:8084

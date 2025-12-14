@@ -10,18 +10,32 @@ spring:
   profiles:
     active: local
 
-  data:
-    mongodb:
-      username: derain
-      password: derain
-      database: product
-      authentication-database: admin
+  elasticsearch:
+    uris: ${ELASTIC_URL:http://elasticsearch:9200}
+    socket-timeout: 30s
+    connection-timeout: 5s
+
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVERS:kafka:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      properties:
+        schema.registry.url: ${SCHEMA_REGISTRY_URL:http://schema-registry:8081}
+        acks: all
+        retries: 3
 
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: ${AUTH0_ISSUER_URI:https://REPLACE_WITH_YOUR_DOMAIN.auth0.com/}
+
+application:
+  config:
+    kafka:
+      topics:
+        product-events: "product.events.v1"
 
 springdoc:
   swagger-ui:

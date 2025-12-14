@@ -8,12 +8,14 @@ import com.yamar.productservice.exception.InvalidProductDataException;
 import com.yamar.productservice.exception.InvalidRequestException;
 import com.yamar.productservice.exception.ProductNotFoundException;
 import com.yamar.productservice.exception.ProductsNotFoundException;
+import com.yamar.productservice.kafka.ProductEventProducer;
 import com.yamar.productservice.mapper.ProductMapper;
 import com.yamar.productservice.model.Product;
 import com.yamar.productservice.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -25,11 +27,26 @@ public class ProductService {
     private static final int MAX_BATCH_SIZE = 100;
     private final ProductRepository productRepository;
     private final ProductMapper mapper;
+    private final ProductEventProducer eventProducer;
 
+    @Transactional
     public ProductResponse createProduct(ProductRequest productRequest) {
         var product = mapper.toProduct(productRequest);
         var savedProduct = productRepository.save(product);
         log.info("Product created with ID: {}", savedProduct.getId());
+
+        /*
+          Availability over consistency.
+          MongoDB is the source of truth; (For now!) no rollback if Kafka publish fails.
+          (Future) Consider Transactional Outbox Pattern for stricter guarantees.
+         */
+
+        try {
+            eventProducer.sendProductCreated(savedProduct);
+        } catch (Exception e) {
+            log.error("CRITICAL: Failed to publish product event. Search Index will be stale.", e);
+        }
+
         return mapper.toDto(savedProduct);
     }
 
