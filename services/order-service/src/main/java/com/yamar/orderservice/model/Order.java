@@ -37,6 +37,24 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderLine> orderLines;
 
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "street", column = @Column(name = "shipping_street")),
+            @AttributeOverride(name = "city", column = @Column(name = "shipping_city")),
+            @AttributeOverride(name = "zipCode", column = @Column(name = "shipping_zip_code")),
+            @AttributeOverride(name = "country", column = @Column(name = "shipping_country"))
+    })
+    private Address shippingAddress;
+
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "street", column = @Column(name = "billing_street")),
+            @AttributeOverride(name = "city", column = @Column(name = "billing_city")),
+            @AttributeOverride(name = "zipCode", column = @Column(name = "billing_zip_code")),
+            @AttributeOverride(name = "country", column = @Column(name = "billing_country"))
+    })
+    private Address billingAddress;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdDate;
