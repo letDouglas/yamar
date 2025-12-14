@@ -23,7 +23,6 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: "10m"
 
     # Increase buffer size to handle large OIDC/OAuth2 Identity Tokens headers
-    # (Fixes 502 Bad Gateway errors during Keycloak redirects)
     nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
 
     # Pass the Host header effectively to backend services (Crucial for OAuth2)

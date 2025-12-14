@@ -22,7 +22,6 @@ Yamar is powered by a robust set of technologies that ensure reliability and per
 - **MongoDB**: A NoSQL database that allows us to store and manage our diverse product catalog efficiently.
 - **MySQL**: For handling structured data related to orders and customer information.
 - **Kafka**: Ensures smooth communication between services with its reliable messaging system.
-- **Keycloak**: Provides secure authentication and authorization for our users.
 - **Test Containers with Wiremock**: Facilitates effective testing of our services to ensure quality.
 - **Grafana Stack**: Comprises Prometheus, Grafana, Loki, and Tempo for comprehensive monitoring and logging.
 - **Kubernetes**: Orchestrates our containerized applications, enabling easy deployment and scaling.
