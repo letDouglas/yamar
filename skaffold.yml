@@ -23,6 +23,10 @@ build:
       context: .
       docker:
         dockerfile: services/gateway-service/Dockerfile
+    - image: yamar-user-service
+      context: .
+      docker:
+        dockerfile: services/user-service/Dockerfile
 
 manifests:
   rawYaml:

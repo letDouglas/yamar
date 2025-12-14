@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  labels:
+    app: user-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox:latest
+          command:
+            - 'sh'
+            - '-c'
+            - |
+              echo "Waiting for MySQL..."
+              until nc -z mysql 3306; do 
+                echo "waiting for mysql:3306..."
+                sleep 2
+              done
+              echo "MySQL is up!"
+
+      containers:
+        - name: user-service
+          image: yamar-user-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8044
+          envFrom:
+            - configMapRef:
+                name: user-config
+          env:
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: yamar-secrets
+                  key: mysql-root-password
+
+            - name: AUTH0_ISSUER_URI
+              valueFrom:
+                secretKeyRef:
+                  name: yamar-secrets
+                  key: auth0-issuer-uri
+
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /api/v1/actuator/health/liveness
+              port: 8044
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /api/v1/actuator/health/readiness
+              port: 8044
+            initialDelaySeconds: 40
+            periodSeconds: 20

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-config
+  labels:
+    app: user-service
+data:
+  # Database Connection
+  SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/user?allowPublicKeyRetrieval=true&useSSL=false"
+  SPRING_DATASOURCE_USERNAME: "root"
