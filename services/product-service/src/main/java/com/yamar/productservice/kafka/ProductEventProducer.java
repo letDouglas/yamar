@@ -1,12 +1,17 @@
 package com.yamar.productservice.kafka;
 
 import com.yamar.events.product.ProductCreatedEvent;
-import com.yamar.productservice.model.Product;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @Service
 @RequiredArgsConstructor
@@ -16,30 +21,31 @@ public class ProductEventProducer {
     private final KafkaTemplate<String, ProductCreatedEvent> kafkaTemplate;
     private final NewTopic productEventsTopic;
 
-    public void sendProductCreated(Product product) {
-        log.info("Preparing to send ProductCreatedEvent for product ID: {}", product.getId());
+    /**
+     * Sends the event to Kafka and WAITS for acknowledgment.
+     * This ensures strict observability: if it fails, throw Exception.
+     */
+    public void sendProductCreated(ProductCreatedEvent event) {
+        String topic = productEventsTopic.name();
+        String key = event.getId();
 
-        ProductCreatedEvent event = ProductCreatedEvent.newBuilder()
-                .setId(product.getId())
-                .setName(product.getName())
-                .setDescription(product.getDescription())
-                .setCategory(product.getCategory().name())
-                .setPrice(product.getPrice().toString()) // Convert BigDecimal to String
-                .setOriginCountry(product.getOriginCountry())
-                .setImages(product.getImages())
-                .build();
+        try {
+            log.debug("Sending ProductCreatedEvent for ID: {}", key);
 
-        // We use the product ID as the key to guarantee ordering within the partition
-        String key = product.getId();
+            // 1. Send Async
+            CompletableFuture<SendResult<String, ProductCreatedEvent>> future =
+                    kafkaTemplate.send(topic, key, event);
 
-        kafkaTemplate.send(productEventsTopic.name(), key, event)
-                .whenComplete((result, ex) -> {
-                    if (ex != null) {
-                        log.error("Failed to send ProductCreatedEvent for ID: {}", key, ex);
-                        // TODO: Implement Outbox Pattern logic here for reliability
-                    } else {
-                        log.info("ProductCreatedEvent sent successfully. Offset: {}", result.getRecordMetadata().offset());
-                    }
-                });
+            // 2. Make it Sync (Wait max 3 seconds)
+            SendResult<String, ProductCreatedEvent> result = future.get(3, TimeUnit.SECONDS);
+
+            log.info("Event published successfully. Topic: {}, Partition: {}, Offset: {}",
+                    result.getRecordMetadata().topic(),
+                    result.getRecordMetadata().partition(),
+                    result.getRecordMetadata().offset());
+
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            throw new RuntimeException("Kafka Publish Failed", e);
+        }
     }
 }

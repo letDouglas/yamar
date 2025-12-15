@@ -38,13 +38,20 @@ public class ProductService {
         /*
           Availability over consistency.
           MongoDB is the source of truth; (For now!) no rollback if Kafka publish fails.
-          (Future) Consider Transactional Outbox Pattern for stricter guarantees.
+          (Future) Consider transactional Outbox Pattern for stricter guarantees.
          */
 
         try {
-            eventProducer.sendProductCreated(savedProduct);
+            // A. Map Entity to Event
+            var event = mapper.toCreatedEvent(savedProduct);
+
+            // B. Send (Blocking call - waits for ACK)
+            eventProducer.sendProductCreated(event);
+
         } catch (Exception e) {
-            log.error("CRITICAL: Failed to publish product event. Search Index will be stale.", e);
+            // 3. Fallback / Compensation Log
+            log.error("CRITICAL: Data Inconsistency detected. Product {} is in DB but NOT in Search Index. Reason: {}",
+                    savedProduct.getId(), e.getMessage());
         }
 
         return mapper.toDto(savedProduct);

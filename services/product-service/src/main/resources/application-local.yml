@@ -1,8 +1,7 @@
 spring:
   data:
     mongodb:
-      host: localhost
-      port: 27020
+      uri: mongodb://derain:derain@localhost:27020/product?authSource=admin
 
   elasticsearch:
     uris: http://localhost:9200
@@ -12,3 +11,9 @@ spring:
     producer:
       properties:
         schema.registry.url: http://localhost:8084
+    consumer:
+      properties:
+        schema.registry.url: http://localhost:8084
+
+  config:
+    import: "optional:file:services/env.properties"

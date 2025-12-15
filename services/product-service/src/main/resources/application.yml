@@ -10,6 +10,15 @@ spring:
   profiles:
     active: local
 
+  data:
+    mongodb:
+      database: product
+      authentication-database: admin
+      host: ${MONGO_HOST:mongodb}
+      port: ${MONGO_PORT:27017}
+      username: ${MONGO_USER:derain}
+      password: ${MONGO_PASSWORD:derain}
+
   elasticsearch:
     uris: ${ELASTIC_URL:http://elasticsearch:9200}
     socket-timeout: 30s
@@ -17,6 +26,7 @@ spring:
 
   kafka:
     bootstrap-servers: ${KAFKA_SERVERS:kafka:9092}
+
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
@@ -24,6 +34,15 @@ spring:
         schema.registry.url: ${SCHEMA_REGISTRY_URL:http://schema-registry:8081}
         acks: all
         retries: 3
+
+    consumer:
+      group-id: product-search-indexer-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        schema.registry.url: ${SCHEMA_REGISTRY_URL:http://schema-registry:8081}
+        specific.avro.reader: true  # FONDAMENTALE: Dice di usare la classe Java specifica (ProductCreatedEvent)
 
   security:
     oauth2:
@@ -36,6 +55,8 @@ application:
     kafka:
       topics:
         product-events: "product.events.v1"
+      consumer-groups:
+        product-search: "product-search-indexer-group"
 
 springdoc:
   swagger-ui:

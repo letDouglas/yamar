@@ -4,6 +4,7 @@ import com.yamar.productservice.dto.ProductBatchRequest;
 import com.yamar.productservice.dto.ProductRequest;
 import com.yamar.productservice.dto.ProductResponse;
 import com.yamar.productservice.dto.ProductUpdateRequest;
+import com.yamar.productservice.service.ProductSearchService;
 import com.yamar.productservice.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final ProductSearchService searchService;
 
     @PostMapping
     public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductRequest productRequest) {
@@ -57,4 +59,8 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<ProductResponse>> searchProducts(@RequestParam String query) {
+        return ResponseEntity.ok(searchService.searchProducts(query));
+    }
 }
