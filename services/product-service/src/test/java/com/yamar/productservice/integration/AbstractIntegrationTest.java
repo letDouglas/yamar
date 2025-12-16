@@ -71,9 +71,16 @@ public abstract class AbstractIntegrationTest {
         registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
         registry.add("spring.elasticsearch.uris", elasticsearchContainer::getHttpHostAddress);
         registry.add("spring.kafka.bootstrap-servers", kafkaContainer::getBootstrapServers);
+
         String schemaRegistryUrl = "http://" + schemaRegistryContainer.getHost() + ":" + schemaRegistryContainer.getMappedPort(8081);
         registry.add("spring.kafka.producer.properties.schema.registry.url", () -> schemaRegistryUrl);
         registry.add("spring.kafka.consumer.properties.schema.registry.url", () -> schemaRegistryUrl);
+
+        registry.add("spring.kafka.producer.properties.value.subject.name.strategy",
+                () -> "io.confluent.kafka.serializers.subject.TopicRecordNameStrategy");
+
+        registry.add("spring.kafka.consumer.properties.value.subject.name.strategy",
+                () -> "io.confluent.kafka.serializers.subject.TopicRecordNameStrategy");
     }
 
     // --- COMMON SETUP (DRY Principle) ---
