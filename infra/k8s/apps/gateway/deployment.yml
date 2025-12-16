@@ -25,6 +25,12 @@ spec:
           envFrom:
             - configMapRef:
                 name: gateway-config
+          env:
+            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI
+              valueFrom:
+                secretKeyRef:
+                  name: yamar-secrets
+                  key: auth0-issuer-uri
           resources:
             requests:
               memory: "350Mi"

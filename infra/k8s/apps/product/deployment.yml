@@ -29,6 +29,19 @@ spec:
                 sleep 2
               done
               echo "MongoDB is up!"
+              
+        - name: wait-for-elasticsearch
+          image: busybox:latest
+          command:
+            - 'sh'
+            - '-c'
+            - |
+              echo "Waiting for Elasticsearch..."
+              until wget -q --spider http://elasticsearch:9200; do
+                echo "Elasticsearch is busy..."
+                sleep 2
+              done
+              echo "Elasticsearch is ready!"
 
       containers:
         - name: product-service
@@ -49,6 +62,11 @@ spec:
                 secretKeyRef:
                   name: yamar-secrets
                   key: mongodb-passwords
+            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI
+              valueFrom:
+                secretKeyRef:
+                  name: yamar-secrets
+                  key: auth0-issuer-uri
           resources:
             requests:
               memory: "256Mi"

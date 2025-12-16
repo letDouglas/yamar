@@ -42,7 +42,6 @@ manifests:
         repo: https://charts.bitnami.com/bitnami
         remoteChart: mongodb
         valuesFiles: [ "infra/k8s/helm/mongo-values.yml" ]
-
       - name: kafka
         repo: https://charts.bitnami.com/bitnami
         remoteChart: kafka
@@ -53,6 +52,12 @@ manifests:
         remoteChart: schema-registry
         valuesFiles: [ "infra/k8s/helm/schema-registry-values.yml" ]
         wait: false
+      - name: elasticsearch
+        repo: https://charts.bitnami.com/bitnami
+        remoteChart: elasticsearch
+        valuesFiles: [ "infra/k8s/helm/elasticsearch-values.yml" ]
+        wait: false
+
 
 deploy:
   kubectl: { }

@@ -44,7 +44,7 @@ spec:
                   name: yamar-secrets
                   key: mysql-root-password
 
-            - name: AUTH0_ISSUER_URI
+            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI
               valueFrom:
                 secretKeyRef:
                   name: yamar-secrets

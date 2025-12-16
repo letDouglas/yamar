@@ -32,6 +32,10 @@ spec:
               -- Create Orders
               CREATE DATABASE IF NOT EXISTS orders;
               GRANT ALL PRIVILEGES ON orders.* TO 'root'@'%';
+              
+              -- Create User 
+              CREATE DATABASE IF NOT EXISTS user;
+              GRANT ALL PRIVILEGES ON user.* TO 'root'@'%';
 
               FLUSH PRIVILEGES;
               EOF

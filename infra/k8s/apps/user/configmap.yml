@@ -5,6 +5,7 @@ metadata:
   labels:
     app: user-service
 data:
+  SPRING_PROFILES_ACTIVE: "default"
   # Database Connection
   SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/user?allowPublicKeyRetrieval=true&useSSL=false"
   SPRING_DATASOURCE_USERNAME: "root"

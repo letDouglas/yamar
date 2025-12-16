@@ -5,6 +5,7 @@ metadata:
   labels:
     app: order-service
 data:
+  SPRING_PROFILES_ACTIVE: "default"
   # -----------------------------------------------------------------------
   # MySQL Connection Parameters
   # -----------------------------------------------------------------------
@@ -22,6 +23,3 @@ data:
   # -----------------------------------------------------------------------
   APPLICATION_CONFIG_INVENTORY_SERVICE_URL: "http://inventory-service:8043/api/v1/inventory"
   APPLICATION_CONFIG_PRODUCT_SERVICE_URL: "http://product-service:8041/api/v1/products"
-
-  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: "https://OUR_AUTH0_DOMAIN/"
-

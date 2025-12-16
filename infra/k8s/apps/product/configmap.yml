@@ -5,6 +5,7 @@ metadata:
   labels:
     app: product-service
 data:
+  SPRING_PROFILES_ACTIVE: "default"
   # -----------------------------------------------------------------------
   # MongoDB Connection Parameters
   # -----------------------------------------------------------------------
@@ -12,8 +13,6 @@ data:
   SPRING_DATA_MONGODB_PORT: "27017"
   SPRING_DATA_MONGODB_DATABASE: "product"
   SPRING_DATA_MONGODB_USERNAME: "derain"
-
   SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE: "product"
 
-  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: "https://OUR_AUTH0_DOMAIN/"
-
+  ELASTIC_URL: "http://elasticsearch:9200"

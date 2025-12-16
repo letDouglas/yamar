@@ -5,6 +5,7 @@ metadata:
   labels:
     app: gateway-service
 data:
+  SPRING_PROFILES_ACTIVE: "default"
   # -----------------------------------------------------------------------
   # Service Discovery Configuration
   # Defines the internal DNS names for downstream microservices.
@@ -12,6 +13,3 @@ data:
   DOWNSTREAM_SERVICES_PRODUCT_SERVICE_URL: "http://product-service:8041"
   DOWNSTREAM_SERVICES_ORDER_SERVICE_URL: "http://order-service:8042"
   DOWNSTREAM_SERVICES_INVENTORY_SERVICE_URL: "http://inventory-service:8043"
-
-  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: "https://OUR_AUTH0_DOMAIN/"
-
