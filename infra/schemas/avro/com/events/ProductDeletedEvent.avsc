@@ -1,0 +1,8 @@
+{
+  "type": "record",
+  "name": "ProductDeletedEvent",
+  "namespace": "com.yamar.events.product",
+  "fields": [
+    {"name": "id", "type": "string"}
+  ]
+}

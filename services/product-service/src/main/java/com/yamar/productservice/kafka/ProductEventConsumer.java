@@ -1,42 +1,55 @@
 package com.yamar.productservice.kafka;
 
 import com.yamar.events.product.ProductCreatedEvent;
-import com.yamar.productservice.model.search.ProductDocument;
+import com.yamar.events.product.ProductDeletedEvent;
+import com.yamar.events.product.ProductUpdatedEvent;
+import com.yamar.productservice.mapper.ProductEventMapper;
+import com.yamar.productservice.mapper.ProductMapper;
 import com.yamar.productservice.repository.search.ProductSearchRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-
-@Service
+@Component
 @RequiredArgsConstructor
 @Slf4j
+@KafkaListener(
+        topics = "${application.config.kafka.topics.product-events}",
+        groupId = "${application.config.kafka.consumer-groups.product-search}"
+)
 public class ProductEventConsumer {
 
     private final ProductSearchRepository searchRepository;
+    private final ProductEventMapper eventMapper;
 
-    @KafkaListener(
-            topics = "${application.config.kafka.topics.product-events}",
-            groupId = "${application.config.kafka.consumer-groups.product-search}"
-    )
-    public void consumeProductCreated(ConsumerRecord<String, ProductCreatedEvent> record) {
-        ProductCreatedEvent event = record.value();
-        log.info("Indexing Product ID: {}", event.getId());
+    @KafkaHandler
+    public void handleCreated(ProductCreatedEvent event) {
+        log.info("Processing CreatedEvent for ID: {}", event.getId());
+        var doc = eventMapper.toDocument(event);
+        searchRepository.save(doc);
+    }
 
-        ProductDocument document = ProductDocument.builder()
-                .id(event.getId())
-                .name(event.getName())
-                .description(event.getDescription())
-                .category(event.getCategory())
-                .price(new BigDecimal(event.getPrice()))
-                .originCountry(event.getOriginCountry())
-                .images(event.getImages())
-                .build();
+    @KafkaHandler
+    public void handleUpdated(ProductUpdatedEvent event) {
+        log.info("Processing UpdatedEvent for ID: {}", event.getId());
+        var doc = eventMapper.toDocument(event);
+        searchRepository.save(doc);
+    }
 
-        searchRepository.save(document);
-        log.info("Product ID: {} successfully indexed in Elasticsearch.", event.getId());
+    @KafkaHandler
+    public void handleDeleted(ProductDeletedEvent event) {
+        log.info("Processing DeletedEvent for ID: {}", event.getId());
+        searchRepository.deleteById(event.getId());
+    }
+
+    /**
+     * Fallback handler for unknown events (Forward Compatibility).
+     * Prevents the consumer from crashing if a new event version is introduced.
+     */
+    @KafkaHandler(isDefault = true)
+    public void handleUnknown(Object object) {
+        log.warn("Received unknown event type: {}", object.getClass().getName());
     }
 }

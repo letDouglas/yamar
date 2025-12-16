@@ -1,6 +1,5 @@
 package com.yamar.productservice.mapper;
 
-import com.yamar.events.product.ProductCreatedEvent;
 import com.yamar.productservice.dto.ProductRequest;
 import com.yamar.productservice.dto.ProductResponse;
 import com.yamar.productservice.dto.ProductUpdateRequest;
@@ -14,7 +13,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class ProductMapper {
 
-    // --- MAPPING MONGO DB (Source of Truth) ---
+    // --- MAPPING MONGO DB ---
 
     public ProductResponse toDto(Product product) {
         return new ProductResponse(
@@ -48,22 +47,17 @@ public class ProductMapper {
         if (dto.getOriginCountry() != null) product.setOriginCountry(dto.getOriginCountry());
     }
 
-    // --- MAPPING ELASTICSEARCH (Projection) ---
+    // --- MAPPING ELASTICSEARCH (Projection to DTO) ---
 
     public ProductResponse toDto(ProductDocument doc) {
         Category category = null;
-
         if (doc.getCategory() != null) {
             try {
                 category = Category.valueOf(doc.getCategory());
             } catch (IllegalArgumentException e) {
-                // Log error immediately so observability tools (ELK/Splunk) pick it up
-                log.error("DATA CORRUPTION DETECTED: Invalid category value '{}' in Elasticsearch for Product ID: {}",
-                        doc.getCategory(), doc.getId());
-                // We leave category as null. The Frontend must handle the missing badge/label.
+                log.error("DATA INTEGRITY: Invalid category '{}' in Search Index for ID: {}", doc.getCategory(), doc.getId());
             }
         }
-
         return new ProductResponse(
                 doc.getId(),
                 doc.getName(),
@@ -73,17 +67,5 @@ public class ProductMapper {
                 doc.getPrice(),
                 doc.getOriginCountry()
         );
-    }
-
-    public ProductCreatedEvent toCreatedEvent(Product product) {
-        return ProductCreatedEvent.newBuilder()
-                .setId(product.getId())
-                .setName(product.getName())
-                .setDescription(product.getDescription())
-                .setCategory(product.getCategory().name())
-                .setPrice(product.getPrice().toPlainString())
-                .setOriginCountry(product.getOriginCountry())
-                .setImages(product.getImages())
-                .build();
     }
 }

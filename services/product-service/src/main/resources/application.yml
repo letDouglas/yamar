@@ -32,6 +32,7 @@ spring:
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
       properties:
         schema.registry.url: ${SCHEMA_REGISTRY_URL:http://schema-registry:8081}
+        value.subject.name.strategy: io.confluent.kafka.serializers.subject.TopicRecordNameStrategy
         acks: all
         retries: 3
 
@@ -42,7 +43,8 @@ spring:
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
       properties:
         schema.registry.url: ${SCHEMA_REGISTRY_URL:http://schema-registry:8081}
-        specific.avro.reader: true  # FONDAMENTALE: Dice di usare la classe Java specifica (ProductCreatedEvent)
+        specific.avro.reader: true
+        value.subject.name.strategy: io.confluent.kafka.serializers.subject.TopicRecordNameStrategy
 
   security:
     oauth2:

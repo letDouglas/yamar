@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "ProductUpdatedEvent",
+  "namespace": "com.yamar.events.product",
+  "fields": [
+    {"name": "id", "type": "string"},
+    {"name": "name", "type": "string"},
+    {"name": "description", "type": "string"},
+    {"name": "category", "type": "string"},
+    {"name": "price", "type": "string"},
+    {"name": "originCountry", "type": "string"},
+    {"name": "images", "type": {"type": "array", "items": "string"}}
+  ]
+}

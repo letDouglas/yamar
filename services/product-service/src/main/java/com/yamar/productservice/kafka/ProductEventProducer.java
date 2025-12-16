@@ -3,6 +3,7 @@ package com.yamar.productservice.kafka;
 import com.yamar.events.product.ProductCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
@@ -18,34 +19,34 @@ import java.util.concurrent.TimeoutException;
 @Slf4j
 public class ProductEventProducer {
 
-    private final KafkaTemplate<String, ProductCreatedEvent> kafkaTemplate;
+    private final KafkaTemplate<String, SpecificRecord> kafkaTemplate;
     private final NewTopic productEventsTopic;
 
     /**
-     * Sends the event to Kafka and WAITS for acknowledgment.
-     * This ensures strict observability: if it fails, throw Exception.
+     * Sends ANY Avro event (Created, Updated, Deleted) to the product topic.
+     * Uses synchronous blocking to ensure data integrity logic in the service.
      */
-    public void sendProductCreated(ProductCreatedEvent event) {
+    public void sendEvent(String key, SpecificRecord event) {
         String topic = productEventsTopic.name();
-        String key = event.getId();
+        String eventType = event.getClass().getSimpleName();
 
         try {
-            log.debug("Sending ProductCreatedEvent for ID: {}", key);
+            log.debug("Sending {} for Key: {}", eventType, key);
 
             // 1. Send Async
-            CompletableFuture<SendResult<String, ProductCreatedEvent>> future =
+            CompletableFuture<SendResult<String, SpecificRecord>> future =
                     kafkaTemplate.send(topic, key, event);
 
             // 2. Make it Sync (Wait max 3 seconds)
-            SendResult<String, ProductCreatedEvent> result = future.get(3, TimeUnit.SECONDS);
+            SendResult<String, SpecificRecord> result = future.get(3, TimeUnit.SECONDS);
 
-            log.info("Event published successfully. Topic: {}, Partition: {}, Offset: {}",
-                    result.getRecordMetadata().topic(),
+            log.info("{} published successfully. Partition: {}, Offset: {}",
+                    eventType,
                     result.getRecordMetadata().partition(),
                     result.getRecordMetadata().offset());
 
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            throw new RuntimeException("Kafka Publish Failed", e);
+            throw new RuntimeException("Kafka Publish Failed for " + eventType, e);
         }
     }
 }

@@ -9,6 +9,7 @@ import com.yamar.productservice.exception.InvalidRequestException;
 import com.yamar.productservice.exception.ProductNotFoundException;
 import com.yamar.productservice.exception.ProductsNotFoundException;
 import com.yamar.productservice.kafka.ProductEventProducer;
+import com.yamar.productservice.mapper.ProductEventMapper;
 import com.yamar.productservice.mapper.ProductMapper;
 import com.yamar.productservice.model.Product;
 import com.yamar.productservice.repository.ProductRepository;
@@ -27,6 +28,7 @@ public class ProductService {
     private static final int MAX_BATCH_SIZE = 100;
     private final ProductRepository productRepository;
     private final ProductMapper mapper;
+    private final ProductEventMapper eventMapper;
     private final ProductEventProducer eventProducer;
 
     @Transactional
@@ -42,16 +44,10 @@ public class ProductService {
          */
 
         try {
-            // A. Map Entity to Event
-            var event = mapper.toCreatedEvent(savedProduct);
-
-            // B. Send (Blocking call - waits for ACK)
-            eventProducer.sendProductCreated(event);
-
+            // Updated to use generic sendEvent
+            eventProducer.sendEvent(savedProduct.getId(), eventMapper.toCreatedEvent(savedProduct));
         } catch (Exception e) {
-            // 3. Fallback / Compensation Log
-            log.error("CRITICAL: Data Inconsistency detected. Product {} is in DB but NOT in Search Index. Reason: {}",
-                    savedProduct.getId(), e.getMessage());
+            log.error("CRITICAL: Failed to publish CreatedEvent for ID: {}", savedProduct.getId(), e);
         }
 
         return mapper.toDto(savedProduct);
@@ -77,20 +73,23 @@ public class ProductService {
 
     public ProductResponse updateProduct(ProductUpdateRequest updateRequest) {
         if (updateRequest.getId() == null || updateRequest.getId().isBlank()) {
-            log.warn("Invalid update request: missing product ID");
             throw new InvalidProductDataException("Product ID must not be null or blank");
         }
 
         Product existingProduct = productRepository.findById(updateRequest.getId())
-                .orElseThrow(() -> {
-                    log.warn("Product with ID {} not found for update", updateRequest.getId());
-                    return new ProductNotFoundException("Product not found with ID: " + updateRequest.getId());
-                });
+                .orElseThrow(() -> new ProductNotFoundException("Product not found with ID: " + updateRequest.getId()));
 
         mapper.updateFields(existingProduct, updateRequest);
-        productRepository.save(existingProduct);
-        log.info("Product updated with ID: {}", updateRequest.getId());
-        return mapper.toDto(existingProduct);
+        var savedProduct = productRepository.save(existingProduct);
+        log.info("Product updated with ID: {}", savedProduct.getId());
+
+        try {
+            eventProducer.sendEvent(savedProduct.getId(), eventMapper.toUpdatedEvent(savedProduct));
+        } catch (Exception e) {
+            log.error("CRITICAL: Failed to publish UpdatedEvent for ID: {}. Search index is STALE.", savedProduct.getId(), e);
+        }
+
+        return mapper.toDto(savedProduct);
     }
 
     public boolean existsById(String id) {
@@ -101,12 +100,17 @@ public class ProductService {
 
     public void deleteProduct(String id) {
         if (!productRepository.existsById(id)) {
-            log.warn("Product with ID {} not found for delete", id);
             throw new ProductNotFoundException("Product not found with ID: " + id);
         }
 
         productRepository.deleteById(id);
         log.info("Product deleted with ID: {}", id);
+
+        try {
+            eventProducer.sendEvent(id, eventMapper.toDeletedEvent(id));
+        } catch (Exception e) {
+            log.error("CRITICAL: Failed to publish DeletedEvent for ID: {}. Product is deleted from DB but remains in Search Index.", id, e);
+        }
     }
 
 
