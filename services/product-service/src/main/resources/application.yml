@@ -21,8 +21,8 @@ spring:
 
   elasticsearch:
     uris: ${ELASTIC_URL:http://elasticsearch:9200}
-    socket-timeout: 30s
-    connection-timeout: 5s
+    socket-timeout: 60s
+    connection-timeout: 10s
 
   kafka:
     bootstrap-servers: ${KAFKA_SERVERS:kafka:9092}

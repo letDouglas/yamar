@@ -154,6 +154,8 @@ downstream-services:
     url: http://order-service:8042
   inventory-service:
     url: http://inventory-service:8043
+  user-service:
+    url: http://user-service:8044
 
 api-config:
   base-path: /api/v1

@@ -1,18 +1,22 @@
 # -----------------------------------------------------------------------------
-# Stage 1: Build Stage
+# Stage 1: Build Stage (Dependency Caching Strategy)
 # -----------------------------------------------------------------------------
 FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
 
 WORKDIR /app
 
-# Copy the pom.xml first to leverage Docker layer caching for dependencies.
-# NOTE: Path is relative to project root because Skaffold context is '.'
+# 1. Dependency Layer
 COPY services/user-service/pom.xml .
+COPY infra /infra
 
-# Copy the application source code
+# 2. Go Offline: Cache dependencies
+RUN mvn dependency:go-offline -B
+
+# 3. Source Layer
+# CORREZIONE QUI: Deve essere user-service
 COPY services/user-service/src ./src
 
-# Package the application
+# 4. Compile
 RUN mvn clean package -DskipTests
 
 # -----------------------------------------------------------------------------
@@ -20,22 +24,18 @@ RUN mvn clean package -DskipTests
 # -----------------------------------------------------------------------------
 FROM eclipse-temurin:21-jre-alpine AS runner
 
-# Create a non-root user for security hardening
+# Security: Run as non-root
 RUN addgroup -S yamar && adduser -S yamar -G yamar
 
 WORKDIR /app
 
-# Copy the built artifact from the builder stage
 COPY --from=builder /app/target/*.jar app.jar
 
-# Change ownership
 RUN chown -R yamar:yamar /app
 
-# Switch to the non-root user
 USER yamar
 
-# Expose the User Service port
+# CORREZIONE QUI: Porta 8044
 EXPOSE 8044
 
-# Launch the application
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -1,24 +1,21 @@
 # -----------------------------------------------------------------------------
-# Stage 1: Build Stage
+# Stage 1: Build Stage (Dependency Caching Strategy)
 # -----------------------------------------------------------------------------
 FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
 
 WORKDIR /app
 
-# Copy the pom.xml first to leverage Docker layer caching for dependencies
+# 1. Dependency Layer: Copy descriptors and shared resources.
 COPY services/order-service/pom.xml .
-
-# -----------------------------------------------------------------------------
-# SHARED RESOURCES INJECTION
-# We copy the 'infra' directory from the project root into the container.
-# This allows the Avro Maven Plugin to find the schemas at ../../infra/schemas
-# -----------------------------------------------------------------------------
 COPY infra /infra
 
-# Copy the application source code
+# 2. Go Offline: Download dependencies to leverage Docker Cache.
+RUN mvn dependency:go-offline -B
+
+# 3. Source Layer: Copy application logic.
 COPY services/order-service/src ./src
 
-# Package the application
+# 4. Compile and Package
 RUN mvn clean package -DskipTests
 
 # -----------------------------------------------------------------------------
@@ -26,22 +23,17 @@ RUN mvn clean package -DskipTests
 # -----------------------------------------------------------------------------
 FROM eclipse-temurin:21-jre-alpine AS runner
 
-# Create a non-root user for security hardening
+# Security: Run as non-root
 RUN addgroup -S yamar && adduser -S yamar -G yamar
 
 WORKDIR /app
 
-# Copy the built artifact from the builder stage
 COPY --from=builder /app/target/*.jar app.jar
 
-# Change ownership
 RUN chown -R yamar:yamar /app
 
-# Switch to the non-root user
 USER yamar
 
-# Expose the Order Service port
 EXPOSE 8042
 
-# Launch the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
