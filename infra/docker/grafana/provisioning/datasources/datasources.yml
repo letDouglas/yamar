@@ -1,0 +1,63 @@
+apiVersion: 1
+
+datasources:
+  # ==========================================
+  # 1. METRICS (Prometheus)
+  # ==========================================
+  - name: Prometheus
+    type: prometheus
+    uid: yamar-prometheus
+    url: http://prometheus:9090
+    access: proxy
+    isDefault: false
+    editable: true
+    jsonData:
+      httpMethod: POST
+
+  # ==========================================
+  # 2. LOGS (Elasticsearch)
+  # ==========================================
+  - name: Elasticsearch
+    type: elasticsearch
+    uid: yamar-elastic
+    url: http://elasticsearch:9200
+    access: proxy
+    database: "[product-logs]-*" # Default index pattern
+    jsonData:
+      index: "[product-logs]-*"
+      timeField: "@timestamp"
+      esVersion: 8.0.0
+      logMessageField: message
+      logLevelField: level
+      # Link Logs back to Traces
+      derivedFields:
+        - datasourceUid: yamar-tempo
+          matcherRegex: "traceId\":\"(\\w+)"
+          name: TraceID
+          url: "$${__value.raw}"
+
+  # ==========================================
+  # 3. TRACES (Tempo)
+  # ==========================================
+  - name: Tempo
+    type: tempo
+    uid: yamar-tempo
+    url: http://tempo:3200
+    access: proxy
+    isDefault: true # Default datasource for Explore view
+    jsonData:
+      # CRITICAL: Service Graph Configuration
+      # This enables the "Node Graph" visualization in Grafana
+      serviceMap:
+        datasourceUid: 'yamar-prometheus'
+
+      # CRITICAL: Deep Link from Trace -> Logs
+      # When viewing a trace, this adds a button to jump to logs for that specific ID
+      tracesToLogsV2:
+        datasourceUid: 'yamar-elastic'
+        spanStartTimeShift: '1h' # Look 1h back/forward just in case of clock skew
+        spanEndTimeShift: '-1h'
+        filterByTraceID: true
+        filterBySpanID: false
+        # The query to send to Elasticsearch
+        query: 'traceId: "$${__trace.traceId}"'

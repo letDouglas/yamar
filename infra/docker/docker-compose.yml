@@ -172,6 +172,25 @@ services:
     networks:
       - yamar-net
 
+  grafana:
+    image: grafana/grafana:latest
+    container_name: yamar-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=yamar
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
+      - tempo
+      - elasticsearch
+    networks:
+      - yamar-net
+
 networks:
   yamar-net:
     driver: bridge
@@ -183,3 +202,4 @@ volumes:
   elastic-data:
   prometheus-data:
   tempo-data:
+  grafana-data:
