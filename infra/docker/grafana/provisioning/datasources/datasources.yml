@@ -22,9 +22,9 @@ datasources:
     uid: yamar-elastic
     url: http://elasticsearch:9200
     access: proxy
-    database: "[product-logs]-*" # Default index pattern
+    database: "yamar-*" # Default index pattern
     jsonData:
-      index: "[product-logs]-*"
+      index: "yamar-*"
       timeField: "@timestamp"
       esVersion: 8.0.0
       logMessageField: message

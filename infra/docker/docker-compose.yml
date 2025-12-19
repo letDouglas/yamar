@@ -129,6 +129,22 @@ services:
     networks:
       - yamar-net
 
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.11.1
+    container_name: yamar-filebeat
+    user: root
+    command: filebeat -e --strict.perms=false
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - yamar-net
+
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.91.0
     container_name: yamar-otel-collector
