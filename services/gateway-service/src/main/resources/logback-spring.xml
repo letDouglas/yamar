@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Spring Boot defaults -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- application name from Spring context -->
+    <springProperty scope="context" name="applicationName" source="spring.application.name"/>
+
+    <!-- JSON console appender (stdout) -->
+    <appender name="jsonConsole" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeContext>false</includeContext>
+
+            <customFields>{"service.name":"${applicationName}"}</customFields>
+
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <includeMdcKeyName>spanId</includeMdcKeyName>
+            <includeMdcKeyName>parentId</includeMdcKeyName>
+        </encoder>
+    </appender>
+
+    <!-- Async wrapper to avoid blocking app threads on IO -->
+    <appender name="asyncJson" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="jsonConsole"/>
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>false</includeCallerData>
+        <neverBlock>true</neverBlock>
+    </appender>
+
+    <!-- root logger -->
+    <root level="INFO">
+        <appender-ref ref="asyncJson"/>
+    </root>
+
+</configuration>
