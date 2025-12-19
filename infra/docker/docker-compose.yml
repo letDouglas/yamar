@@ -129,6 +129,49 @@ services:
     networks:
       - yamar-net
 
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.91.0
+    container_name: yamar-otel-collector
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
+    volumes:
+      - ./collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317" # OTLP gRPC Receiver
+      - "4318:4318" # OTLP HTTP Receiver
+      - "8889:8889" # Prometheus Exporter Endpoint
+    depends_on:
+      - tempo
+      - prometheus
+    networks:
+      - yamar-net
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: yamar-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-lifecycle
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - yamar-net
+
+  tempo:
+    image: grafana/tempo:latest
+    container_name: yamar-tempo
+    command: [ "-config.file=/etc/tempo.yml" ]
+    volumes:
+      - ./tempo/tempo.yml:/etc/tempo.yml
+      - tempo-data:/var/tempo
+    ports:
+      - "3200:3200"   # Tempo HTTP
+      - "4317"        # OTLP gRPC (Internal)
+    networks:
+      - yamar-net
+
 networks:
   yamar-net:
     driver: bridge
@@ -138,3 +181,5 @@ volumes:
   mysql-microservices:
   kafka-data:
   elastic-data:
+  prometheus-data:
+  tempo-data:
