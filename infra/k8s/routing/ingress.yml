@@ -35,7 +35,7 @@ spec:
     # -------------------------------------------------------------------------
     # ROUTE 1: API GATEWAY
     # URL: http://api.127.0.0.1.nip.io
-    # Resolves to: 127.0.0.1 -> Ingress Controller -> Gateway Service (9090)
+    # Resolves to: 127.0.0.1 -> Ingress Controller -> Gateway Service (8080)
     # -------------------------------------------------------------------------
     - host: api.127.0.0.1.nip.io
       http:
@@ -46,4 +46,4 @@ spec:
               service:
                 name: gateway-service
                 port:
-                  number: 9090
+                  number: 8080
