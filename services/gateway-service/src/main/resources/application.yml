@@ -131,22 +131,6 @@ resilience4j:
         baseConfig: default
         slowCallDurationThreshold: 10s
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,circuitbreakers,circuitbreakerevents,metrics
-  endpoint:
-    health:
-      show-details: always
-      show-components: always
-    circuitbreakers:
-      enabled: true
-  metrics:
-    distribution:
-      percentiles-histogram:
-        resilience4j.circuitbreaker.calls: true
-
 downstream-services:
   product-service:
     url: http://product-service:8041
@@ -175,3 +159,30 @@ api-docs-discovery:
       url: ${api-config.base-path}/api-docs
       serviceUrl: ${downstream-services.inventory-service.url}
       contextPath: ${api-config.base-path}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,circuitbreakers,circuitbreakerevents,metrics
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+    circuitbreakers:
+      enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        resilience4j.circuitbreaker.calls: true
+
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://otel-collector:4318/v1/traces
+    metrics:
+      export:
+        url: http://otel-collector:4318/v1/metrics
+        step: 30s

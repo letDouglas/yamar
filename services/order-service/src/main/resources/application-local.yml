@@ -18,3 +18,12 @@ application:
       url: http://localhost:8043/api/v1/inventory
     user-service:
       url: http://localhost:8044/api/v1/users
+
+management:
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
+    metrics:
+      export:
+        url: http://localhost:4318/v1/metrics
+        step: 10s

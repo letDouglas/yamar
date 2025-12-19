@@ -15,3 +15,12 @@ logging:
 spring:
   config:
     import: "optional:file:services/env.properties"
+
+management:
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
+    metrics:
+      export:
+        url: http://localhost:4318/v1/metrics
+        step: 10s
