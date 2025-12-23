@@ -1,27 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <!-- Spring Boot defaults -->
+    <!-- =============================================================== -->
+    <!-- Base configuration                                              -->
+    <!-- =============================================================== -->
+
+    <!-- Spring Boot logging defaults -->
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
-    <!-- application name from Spring context -->
-    <springProperty scope="context" name="applicationName" source="spring.application.name"/>
+    <!-- Application name from Spring environment -->
+    <springProperty scope="context"
+                    name="applicationName"
+                    source="spring.application.name"/>
 
-    <!-- JSON console appender (stdout) -->
-    <appender name="jsonConsole" class="ch.qos.logback.core.ConsoleAppender">
+    <!-- =============================================================== -->
+    <!-- Appenders                                                       -->
+    <!-- =============================================================== -->
+
+    <!-- JSON console appender for structured logging -->
+    <appender name="jsonConsole"
+              class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <includeContext>false</includeContext>
-
             <customFields>{"service.name":"${applicationName}"}</customFields>
 
+            <!-- MDC fields for distributed tracing -->
             <includeMdcKeyName>traceId</includeMdcKeyName>
             <includeMdcKeyName>spanId</includeMdcKeyName>
             <includeMdcKeyName>parentId</includeMdcKeyName>
         </encoder>
     </appender>
 
-    <!-- Async wrapper to avoid blocking app threads on IO -->
-    <appender name="asyncJson" class="ch.qos.logback.classic.AsyncAppender">
+    <!-- Async wrapper to decouple logging from application threads -->
+    <appender name="asyncJson"
+              class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="jsonConsole"/>
         <queueSize>512</queueSize>
         <discardingThreshold>0</discardingThreshold>
@@ -29,9 +41,31 @@
         <neverBlock>true</neverBlock>
     </appender>
 
-    <!-- root logger -->
-    <root level="INFO">
-        <appender-ref ref="asyncJson"/>
-    </root>
+    <!-- Console appender for local development -->
+    <appender name="humanConsole"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- Compact layout without trace placeholders -->
+            <pattern>%d{HH:mm:ss.SSS} %highlight(%-5level) %magenta([%15.15t]) %cyan(%-40.40logger{39}) : %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- =============================================================== -->
+    <!-- Profile-based configuration                                     -->
+    <!-- =============================================================== -->
+
+    <!-- Production-like environments -->
+    <springProfile name="prod | docker | k8s">
+        <root level="INFO">
+            <appender-ref ref="asyncJson"/>
+        </root>
+    </springProfile>
+
+    <!-- Non-production environments -->
+    <springProfile name="!prod &amp; !docker &amp; !k8s">
+        <root level="INFO">
+            <appender-ref ref="humanConsole"/>
+        </root>
+    </springProfile>
 
 </configuration>
