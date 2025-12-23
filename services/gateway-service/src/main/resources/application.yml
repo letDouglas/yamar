@@ -15,15 +15,16 @@ spring:
             connect-timeout: 10000
             response-timeout: 30s
 
-          default-filters:
-            - TokenRelay
-
           routes:
+            # -----------------------------------------------------------------
+            # PRODUCT SERVICE
+            # -----------------------------------------------------------------
             - id: product-service
               uri: ${downstream-services.product-service.url}
               predicates:
-                - Path=${api-config.base-path}/products/**
+                - Path=/api/v1/products/**
               filters:
+                - TokenRelay
                 - name: Retry
                   args:
                     retries: 3
@@ -39,11 +40,22 @@ spring:
                     name: product-service
                     fallbackUri: forward:/fallback/serviceUnavailable
 
+            - id: product-service-docs
+              uri: ${downstream-services.product-service.url}
+              predicates:
+                - Path=/v3/api-docs/product-service
+              filters:
+                - SetPath=/api/v1/v3/api-docs
+
+            # -----------------------------------------------------------------
+            # ORDER SERVICE
+            # -----------------------------------------------------------------
             - id: order-service
               uri: ${downstream-services.order-service.url}
               predicates:
-                - Path=${api-config.base-path}/orders/**
+                - Path=/api/v1/orders/**
               filters:
+                - TokenRelay
                 - name: Retry
                   args:
                     retries: 2
@@ -59,11 +71,22 @@ spring:
                     name: order-service
                     fallbackUri: forward:/fallback/serviceUnavailable
 
+            - id: order-service-docs
+              uri: ${downstream-services.order-service.url}
+              predicates:
+                - Path=/v3/api-docs/order-service
+              filters:
+                - SetPath=/api/v1/v3/api-docs
+
+            # -----------------------------------------------------------------
+            # INVENTORY SERVICE
+            # -----------------------------------------------------------------
             - id: inventory-service
               uri: ${downstream-services.inventory-service.url}
               predicates:
-                - Path=${api-config.base-path}/inventory/**
+                - Path=/api/v1/inventory/**
               filters:
+                - TokenRelay
                 - name: Retry
                   args:
                     retries: 3
@@ -79,15 +102,33 @@ spring:
                     name: inventory-service
                     fallbackUri: forward:/fallback/serviceUnavailable
 
+            - id: inventory-service-docs
+              uri: ${downstream-services.inventory-service.url}
+              predicates:
+                - Path=/v3/api-docs/inventory-service
+              filters:
+                - SetPath=/api/v1/v3/api-docs
+
+            # -----------------------------------------------------------------
+            # USER SERVICE
+            # -----------------------------------------------------------------
             - id: user-service
               uri: ${downstream-services.user-service.url}
               predicates:
-                - Path=${api-config.base-path}/users/**
+                - Path=/api/v1/users/**
               filters:
+                - TokenRelay
                 - name: CircuitBreaker
                   args:
                     name: user-service
                     fallbackUri: forward:/fallback/serviceUnavailable
+
+            - id: user-service-docs
+              uri: ${downstream-services.user-service.url}
+              predicates:
+                - Path=/v3/api-docs/user-service
+              filters:
+                - SetPath=/api/v1/v3/api-docs
 
   security:
     oauth2:
@@ -97,10 +138,15 @@ spring:
 
 springdoc:
   swagger-ui:
-    path: /swagger-ui.html
-    config-url: /v3/api-docs/swagger-config
-  api-docs:
-    path: /v3/api-docs
+    urls:
+      - name: Product Service
+        url: /v3/api-docs/product-service
+      - name: Order Service
+        url: /v3/api-docs/order-service
+      - name: Inventory Service
+        url: /v3/api-docs/inventory-service
+      - name: User Service
+        url: /v3/api-docs/user-service
 
 resilience4j:
   timelimiter:
@@ -140,25 +186,6 @@ downstream-services:
     url: http://inventory-service:8043
   user-service:
     url: http://user-service:8044
-
-api-config:
-  base-path: /api/v1
-  server-description: API Gateway
-
-api-docs-discovery:
-  services:
-    - name: Product Service
-      url: ${api-config.base-path}/api-docs
-      serviceUrl: ${downstream-services.product-service.url}
-      contextPath: ${api-config.base-path}
-    - name: Order Service
-      url: ${api-config.base-path}/api-docs
-      serviceUrl: ${downstream-services.order-service.url}
-      contextPath: ${api-config.base-path}
-    - name: Inventory Service
-      url: ${api-config.base-path}/api-docs
-      serviceUrl: ${downstream-services.inventory-service.url}
-      contextPath: ${api-config.base-path}
 
 management:
   endpoints:
