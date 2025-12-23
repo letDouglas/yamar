@@ -27,7 +27,6 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/webjars/**",
                                 "/favicon.ico",
-                                "/api/v1/api-docs/**",
                                 "/fallback/**",
                                 "/actuator/**"
                         ).permitAll()
@@ -42,7 +41,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // DEV ONLY: allow all origins for CORS to simplify local development and testing
+        // DEV ONLY: allow all origins to simplify local development
         configuration.setAllowedOrigins(List.of("*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
