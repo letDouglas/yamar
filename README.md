@@ -9,6 +9,9 @@
 ![MySQL](https://img.shields.io/badge/MySQL-Database-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-NoSQL-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
 ![Elasticsearch](https://img.shields.io/badge/Elasticsearch-Search-005571?style=for-the-badge&logo=elasticsearch&logoColor=white)
+![Grafana](https://img.shields.io/badge/Grafana-Visualization-F46800?style=for-the-badge&logo=grafana&logoColor=white)
+![Prometheus](https://img.shields.io/badge/Prometheus-Metrics-E6522C?style=for-the-badge&logo=prometheus&logoColor=white)
+![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-Observability-000000?style=for-the-badge&logo=opentelemetry&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Skaffold](https://img.shields.io/badge/Skaffold-Dev%20Workflow-1F8ACE?style=for-the-badge&logo=google-cloud&logoColor=white)
 ![Status](https://img.shields.io/badge/Status-Active%20Development-green?style=for-the-badge)
@@ -23,74 +26,25 @@ The entire infrastructure is defined as code (IaC), fully containerized, and des
 
 The ecosystem follows a Domain-Driven Design (DDD) approach, with each microservice representing a bounded context. Communication is handled through a mix of synchronous REST calls (via an API Gateway) for queries and asynchronous events (via Kafka) for commands and state changes, ensuring loose coupling and high resilience.
 
-```mermaid
-flowchart TB
-    %% Styling
-    classDef clientClass fill:#e1f5ff,stroke:#01579b,stroke-width:2px
-    classDef gatewayClass fill:#fff9c4,stroke:#f57f17,stroke-width:2px
-    classDef serviceClass fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
-    classDef dataClass fill:#f8bbd0,stroke:#c2185b,stroke-width:2px
-    classDef messageClass fill:#d1c4e9,stroke:#512da8,stroke-width:2px
-    %% Client Layer
-    Client[("👤 Client<br/>(Web/Mobile)")]:::clientClass
-    
-    %% Gateway Layer
-    subgraph Gateway["🌐 Gateway Layer"]
-        direction TB
-        NGINX["NGINX Ingress<br/>Load Balancer<br/>TLS Termination"]:::gatewayClass
-        APIGW["API Gateway<br/>Authentication<br/>Rate Limiting<br/>Routing"]:::gatewayClass
-    end
-    
-    %% Service Layer
-    subgraph Services["⚙️ Business Services Layer"]
-        direction LR
-        ProductSvc["📦 Product Service<br/>Catalog Management<br/>Port: 8081"]:::serviceClass
-        OrderSvc["🛒 Order Service<br/>Order Processing<br/>Port: 8082"]:::serviceClass
-        UserSvc["👥 User Service<br/>Authentication<br/>Port: 8083"]:::serviceClass
-        InventorySvc["📊 Inventory Service<br/>Stock Management<br/>Port: 8084"]:::serviceClass
-    end
-    
-    %% Data & Messaging Layer
-    subgraph DataLayer["💾 Data & Messaging Layer"]
-        direction LR
-        Kafka["Apache Kafka<br/>Event Streaming<br/>Topics: products,<br/>orders, inventory"]:::messageClass
-        MySQL["MySQL<br/>Transactional Data<br/>Orders, Users"]:::dataClass
-        Mongo["MongoDB<br/>Product Catalog<br/>Documents"]:::dataClass
-        ES["Elasticsearch<br/>Search & Analytics<br/>Full-text Search"]:::dataClass
-    end
-    
-    %% Client to Gateway
-    Client -->|"HTTPS:443<br/>REST API"| NGINX
-    NGINX -->|"HTTP:8080"| APIGW
-    
-    %% Gateway to Services
-    APIGW -->|"REST + JWT"| ProductSvc
-    APIGW -->|"REST + JWT"| OrderSvc
-    APIGW -->|"REST + JWT"| UserSvc
-    APIGW -->|"REST + JWT"| InventorySvc
-    
-    %% Inter-Service Communication
-    ProductSvc -.->|"Sync REST<br/>(Feign Client)"| OrderSvc
-    OrderSvc -.->|"Sync REST<br/>Check Stock"| InventorySvc
-    
-    %% Event Publishing
-    ProductSvc ==>|"Async Event<br/>ProductCreated<br/>ProductUpdated<br/>(Avro)"| Kafka
-    OrderSvc ==>|"Async Event<br/>OrderPlaced<br/>OrderCancelled<br/>(Avro)"| Kafka
-    InventorySvc ==>|"Async Event<br/>StockUpdated<br/>(Avro)"| Kafka
-    
-    %% Event Consumption & Data Persistence
-    Kafka ==>|"Consumer<br/>Order Events"| MySQL
-    Kafka ==>|"Consumer<br/>Product Events"| Mongo
-    Kafka ==>|"Consumer<br/>Search Indexing"| ES
-    
-    %% Direct Database Access
-    OrderSvc -->|"Write/Read<br/>Transactions"| MySQL
-    UserSvc -->|"Write/Read<br/>User Profiles"| MySQL
-    ProductSvc -->|"Write/Read<br/>Catalog"| Mongo
-    InventorySvc -->|"Write/Read<br/>Stock Levels"| MySQL
-```
+![YAMAR System Architecture](docs/assets/system-architecture.png)
 
----
+
+<details>
+<summary><b>🔍 Deep Dive: Observability Stack Architecture</b></summary>
+
+<br/>
+
+To ensure production-grade reliability, YAMAR implements a complete three-pillar observability stack:
+
+![Observability Stack](docs/assets/observability-architecture.png)
+
+This architecture enables:
+- **Distributed Tracing**: W3C TraceID propagation across all services
+- **Structured Logging**: JSON logs with automatic TraceID injection
+- **Metrics Collection**: Prometheus-compatible OTLP export
+- **Unified Visualization**: Single Grafana dashboard with cross-pillar linking
+
+</details>
 
 ## 🧠 Architectural Decisions & Core Concepts
 
@@ -113,6 +67,26 @@ We intentionally avoid legacy service discovery tools like Eureka. The API Gatew
 
 ---
 
+## 👁️ Observability & Monitoring
+
+### The "Glass Box" Philosophy
+
+We treat observability as a first-class citizen, not an afterthought. The system implements the "Three Pillars of Observability" fully decoupled from the application logic using the OpenTelemetry (OTLP) standard.
+
+**Distributed Tracing (The "Digital Passport"):**
+Every request is tagged with a W3C-compliant TraceID at the Gateway. Micrometer Tracing propagates this ID across synchronous REST calls and asynchronous Kafka events. Grafana Tempo stores the traces, allowing full waterfall visualization of the request lifecycle.
+
+**Structured Logging (Contextualization):**
+Human-readable text logs are banned in production. Applications emit JSON Logs (via Logback + LogstashEncoder). TraceID Injection means every log entry automatically includes the current `traceId` and `spanId` via MDC (Mapped Diagnostic Context), linking logs directly to traces. A Filebeat sidecar/daemon reads Docker container logs and ships them to Elasticsearch for centralized storage and search.
+
+**Metrics (Health):**
+Applications push metrics via OTLP to a central OpenTelemetry Collector. Prometheus scrapes the Collector (not the apps directly), ensuring architecture decoupling. This provides JVM metrics, HTTP request rates, and custom business metrics.
+
+**Single Pane of Glass:**
+Grafana unifies all three pillars. Deep Linking allows clicking on a log error to jump instantly to the trace timeline, and vice-versa. Derived fields automatically correlate logs to traces using the shared TraceID, eliminating the need to manually search across systems.
+
+---
+
 ## 🛠️ Technology Stack
 
 | Component | Technology | Role & Justification |
@@ -122,10 +96,42 @@ We intentionally avoid legacy service discovery tools like Eureka. The API Gatew
 | **Authentication** | Auth0 (OAuth2/OIDC) | Enterprise-grade identity management with JWT token validation. |
 | **Messaging** | Kafka (KRaft mode), Avro, Schema Registry | Provides a durable, scalable event bus. Avro ensures schema evolution and type safety. |
 | **Persistence** | MongoDB, MySQL 8, Elasticsearch 8 | Polyglot Persistence: Using the best database for the job (Mongo for documents, MySQL for transactions, Elastic for search). |
+| **Collection** | OpenTelemetry Collector | Vendor-agnostic proxy that receives, batches, and routes telemetry data. |
+| **Metrics DB** | Prometheus | Time-series database for storing JVM, HTTP, and System metrics. |
+| **Tracing DB** | Grafana Tempo | High-volume, cost-effective backend for distributed traces. |
+| **Log Shipper** | Filebeat | Lightweight shipper that forwards container logs to Elasticsearch. |
+| **Visualization** | Grafana | The UI for dashboards and exploring correlated data (Logs ↔ Traces). |
 | **Orchestration** | Kubernetes (via Kind for local dev) | The de-facto standard for container orchestration. |
 | **Package Mgmt** | Helm 3 | Manages complex, stateful dependencies (Kafka, DBs) as reusable charts. |
 | **Dev Workflow** | Skaffold | Enables a "live-reload" development experience directly on Kubernetes. |
 | **Build System** | Maven | Manages dependencies and build lifecycle, optimized with `dependency:go-offline`. |
+
+---
+
+## 🧪 Local Observability Lab (Docker Compose)
+
+While Kubernetes is the target for production, we provide a full Docker Compose environment to test the Observability Stack locally without the overhead of a cluster.
+
+### Quick Start
+
+```bash
+cd infra/docker
+docker-compose up -d --build
+```
+
+### Access Points
+
+- **Grafana** (Dashboards): http://localhost:3000 (User: `admin` / Pass: `yamar`)
+- **Prometheus** (Metrics): http://localhost:9090
+- **Tempo** (Traces): http://localhost:3200
+- **API Gateway**: http://localhost:8080 (Note: Port changed from 9090 to avoid conflict with Prometheus)
+
+### Verification Steps
+
+1. **Generate traffic**: `curl http://localhost:8080/api/v1/products`
+2. Open Grafana → **Explore**
+3. Select **Tempo** datasource → Click **Search** → Select a trace to view the full transaction path
+4. Select **Elasticsearch** datasource → Verify logs contain the `traceId`
 
 ---
 
