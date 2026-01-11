@@ -20,7 +20,7 @@ spec:
     git:
       uri: https://github.com/letDouglas/yamar.git
       ref: poc-openshift
-    contextDir: services/user-service
+    contextDir: /
   strategy:
     type: Source
     sourceStrategy:
@@ -29,7 +29,7 @@ spec:
         name: registry.access.redhat.com/ubi9/openjdk-21:latest
       env:
         - name: MAVEN_ARGS_APPEND
-          value: "-Dmaven.test.skip=true"
+          value: "-pl services/user-service -am -Dmaven.test.skip=true"
         - name: MAVEN_OPTS
           value: "-Xmx600m -Xms300m"
         - name: JAVA_TOOL_OPTIONS
