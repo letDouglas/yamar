@@ -1,0 +1,1 @@
+This folder contains the declarative YAML manifests for deploying YAMAR on Red Hat OpenShift.
