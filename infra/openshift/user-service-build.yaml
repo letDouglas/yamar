@@ -1,0 +1,41 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: user-service
+  labels:
+    app: user-service
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: user-service-build
+  labels:
+    app: user-service
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: user-service:latest
+  source:
+    git:
+      uri: https://github.com/letDouglas/yamar.git
+      ref: poc-openshift
+    contextDir: services/user-service
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: DockerImage
+        name: registry.access.redhat.com/ubi9/openjdk-21:latest
+      env:
+        - name: MAVEN_ARGS_APPEND
+          value: "-Dmaven.test.skip=true"
+        - name: MAVEN_OPTS
+          value: "-Xmx600m -Xms300m"
+        - name: JAVA_TOOL_OPTIONS
+          value: "-XX:MaxRAMPercentage=75.0"
+  resources:
+    limits:
+      memory: 1.5Gi
+    requests:
+      memory: 1Gi
