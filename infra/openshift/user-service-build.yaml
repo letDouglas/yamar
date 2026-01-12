@@ -34,6 +34,8 @@ spec:
           value: "-Xmx600m -Xms300m"
         - name: JAVA_TOOL_OPTIONS
           value: "-XX:MaxRAMPercentage=75.0"
+        - name: MAVEN_S2I_ARTIFACT_DIRS
+          value: "services/user-service/target"
   resources:
     limits:
       memory: 1.5Gi

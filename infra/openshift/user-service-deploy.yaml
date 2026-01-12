@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  labels:
+    app: user-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          image: image-registry.openshift-image-registry.svc:5000/letdouglas98-dev/user-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8044
+              name: http
+          resources:
+            requests:
+              memory: "384Mi"
+              cpu: "100m"
+            limits:
+              memory: "768Mi"
+          env:
+            - name: JAVA_APP_JAR
+              value: "user-service-0.0.1-SNAPSHOT.jar"
+
+            - name: SPRING_PROFILES_ACTIVE
+              value: "openshift"
+
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:MaxRAMPercentage=75.0"
+
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql:3306/user?allowPublicKeyRetrieval=true&useSSL=false"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secrets
+                  key: database-root-password
+            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI
+              valueFrom:
+                secretKeyRef:
+                  name: auth0-secrets
+                  key: issuer-uri
+
+          readinessProbe:
+            httpGet:
+              path: /api/v1/actuator/health/readiness
+              port: 8044
+            initialDelaySeconds: 40
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /api/v1/actuator/health/liveness
+              port: 8044
+            initialDelaySeconds: 120
+            periodSeconds: 20
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+spec:
+  ports:
+    - port: 8044
+      targetPort: 8044
+  selector:
+    app: user-service
+
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: user-service
+spec:
+  to:
+    kind: Service
+    name: user-service
+  port:
+    targetPort: 8044
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

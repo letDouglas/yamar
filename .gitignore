@@ -38,3 +38,6 @@ env.properties
 
 # Documentation
 iHELP.md
+
+# Openshift
+infra/openshift/auth0-secret.yaml
