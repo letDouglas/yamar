@@ -11,7 +11,11 @@ logging:
 management:
   otlp:
     tracing:
-      endpoint: "http://disabled"
+      export:
+        enabled: false
     metrics:
       export:
         enabled: false
+
+  tracing:
+    enabled: false
