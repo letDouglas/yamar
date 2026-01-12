@@ -1,0 +1,17 @@
+spring:
+  config:
+    import: ""
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: INFO
+    com.yamar: DEBUG
+
+management:
+  otlp:
+    tracing:
+      endpoint: "http://disabled"
+    metrics:
+      export:
+        enabled: false
