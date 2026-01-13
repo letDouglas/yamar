@@ -1,75 +1,107 @@
-# ☁️ OpenShift Deployment Architecture (PoC)
+[← Back to Main README](../../README.md)
+# ☁️ OpenShift Architecture & Implementation Details
 
-![OpenShift Architecture](../../docs/assets/openshift-architecture.png)
+![OpenShift Architecture](../../docs/assets/openshift-poc/openshift-architecture.png)
 
-This directory contains the **Infrastructure as Code (IaC)** manifests required to deploy the `user-service` and its dependencies on the **Red Hat OpenShift Developer Sandbox**.
-
-The deployment follows a **Declarative Approach**, prioritizing native OpenShift features (S2I, Routes, ImageStreams) while adapting to the resource and permission constraints of the Sandbox environment.
-
----
-
-## 📂 Manifest Structure
-
-| File | Description |
-| :--- | :--- |
-| `mysql-db.yaml` | **Persistence Layer:** MySQL 8.0 Deployment with PVC (1Gi) and internal ClusterIP Service. |
-| `user-service-build.yaml` | **CI Pipeline:** Defines the `BuildConfig` using Source-to-Image (S2I) strategy to compile Java 21/Maven. |
-| `user-service-deploy.yaml` | **Runtime:** Deployment, Service, and public Route. Includes Probes, Resource Limits, and Env Vars. |
-| `webhook-rbac.yaml` | **Network Access:** Custom RoleBinding to allow GitHub to trigger the internal Webhook API from the internet. |
-| `*-secret.yaml` | *(Ignored via .gitignore)* Contains actual credentials. Templates provided as `.example.yaml`. |
+This document details the technical implementation of the **YAMAR User Service** on **Red Hat OpenShift**. It describes the declarative CI/CD workflow, security configurations, and the architectural decisions made to optimize the microservice for a cloud-native environment.
 
 ---
 
-## 🧠 Architectural Decisions (PoC vs Enterprise)
+## 📂 Manifest Catalog
 
-### 1. Build Strategy: Native S2I (Source-to-Image)
-*   **Implementation:** Used the official Red Hat UBI 9 OpenJDK 21 builder.
-*   **Challenge:** The project is a **Maven Multi-Module** repo.
-*   **Solution:** Configured `contextDir: /` to allow access to the parent POM and used `MAVEN_ARGS_APPEND: -pl ...` to isolate the build. Added `MAVEN_S2I_ARTIFACT_DIRS` to help the builder locate the nested JAR.
+| File | Resource Type | Purpose |
+|:-----|:-------------|:--------|
+| `mysql-db.yaml` | Deployment + SVC + PVC | Provisions a MySQL 8.0 instance with 1Gi persistent storage and internal DNS resolution. |
+| `user-service-build.yaml` | BuildConfig + IS | Defines the **Source-to-Image (S2I)** pipeline using UBI 9 OpenJDK 21. Handles automated image builds. |
+| `user-service-deploy.yaml` | Deployment + SVC + Route | Manages the application runtime, including Rolling Updates, Health Probes, and HTTPS exposure. |
+| `webhook-rbac.yaml` | RoleBinding | Configures RBAC to allow GitHub Webhook triggers to communicate with the OpenShift API. |
+| `auth0-secret.example.yaml` | Secret (Template) | Template for Auth0 Issuer URI and OIDC credentials. |
+| `webhook-secret.example.yaml` | Secret (Template) | Template for the Webhook authentication token. |
 
-### 2. CI/CD Automation: Native Webhooks
-*   **Constraint:** The Developer Sandbox restricts the installation of Operators (like **ArgoCD**) and limits Cluster-Scope permissions required for complex **Tekton** pipelines.
-*   **Solution:** implemented a **Direct Webhook Trigger**.
-*   **The RBAC Fix:** Since GitHub interacts as an unauthenticated client, I applied a specific `RoleBinding` (`webhook-rbac.yaml`) to allow the `system:unauthenticated` group to access *only* the Build Webhook API endpoint, secured by a secret token.
-
-### 3. Configuration Management: Hybrid Approach
-*   **Static Config:** Introduced a specific Spring profile (`application-openshift.yml`) in the source code to handle logging levels and disable unnecessary local tools (OpenTelemetry/Tracing) to keep logs clean.
-*   **Dynamic Config:** Injected Database credentials and Auth0 Issuer URIs via Kubernetes **Secrets** and **Environment Variables** at runtime.
-
-### 4. Secret Management
-*   **Current Approach:** Local file application + Gitignore (Template pattern).
-*   **Enterprise Standard:** In a real-world scenario, I would utilize **Sealed Secrets** (GitOps friendly encryption) or an **External Secrets Operator** integrated with HashiCorp Vault.
+> **Note:** Actual secret files are excluded via `.gitignore`. Environment-specific credentials must be applied manually or via a secure vault before deployment.
 
 ---
 
-## 🚀 Deployment Lifecycle
+## 🧠 Technical Design Decisions
 
-The environment is designed to be **Self-Healing** and **Automated**:
+### 1. Maven Multi-Module Build Strategy
+The YAMAR ecosystem is structured as a Maven Multi-Module project. To build the `user-service` independently while maintaining access to the parent POM, the `BuildConfig` was tuned as follows:
 
-1.  **Code Push:** Developer pushes to `poc-openshift` branch on GitHub.
-2.  **Trigger:** GitHub Webhook hits the OpenShift API.
-3.  **Build:** OpenShift spins up a Build Pod (memory tuned to avoid OOMKilled).
-4.  **Update:** The `ImageStream` detects the new image.
-5.  **Rollout:** The Deployment performs a **Rolling Update**, replacing the old Pod with the new version with zero downtime.
+* **Context Root:** Set to `/` to allow the S2I builder to resolve the parent `pom.xml`.
+* **Selective Compilation:** Used `MAVEN_ARGS_APPEND` with `-pl services/user-service -am` to isolate the build to the specific module and its required dependencies.
+* **Artifact Localization:** Implemented `MAVEN_S2I_ARTIFACT_DIRS` to explicitly point the builder to the nested `target` folder, ensuring the correct JAR is identified for the final image layer.
+
+### 2. RBAC for External Webhook Triggers
+To enable automated CI/CD from GitHub without compromising cluster security, a specific RBAC policy was implemented:
+
+* **Problem:** Default OpenShift policies block unauthenticated POST requests to the build API.
+* **Solution:** Applied a `RoleBinding` granting the `system:webhook` role to the `system:unauthenticated` group within the project namespace.
+* **Security:** Access is strictly limited to the webhook endpoint and is protected by a unique secret token passed in the URL.
+
+### 3. Hybrid Configuration Management
+To avoid "Configuration Drift" and keep manifest files maintainable, a hybrid strategy was adopted:
+
+* **Static Configuration:** Application-level settings (logging levels, disabling local telemetry) are encapsulated in a dedicated `openshift` Spring profile within the source code.
+* **Dynamic Configuration:** Infrastructure-level settings (DB endpoints, Secrets) are injected via the `Deployment` manifest.
+* **Rationale:** This ensures **Image Immutability**. The same binary can run in different environments simply by switching the active Spring profile and injecting different secrets.
 
 ---
 
-## 🛠️ How to Deploy (Manual Recreation)
+## 🧪 Verification & Status
 
-If the Sandbox resets, restore the environment in this order:
+### 1. Automated Deployment Flow (Self-Healing)
+The following capture demonstrates the resilience of the pipeline. When the manifests are first applied, the system enters a transient `ImagePullBackOff` state. Once the build is completed via webhook, OpenShift automatically triggers a rollout, terminating the placeholder pods and spawning the functional version.
+
+![Self-Healing Process](../../docs/assets/openshift-poc/openshift-self-healing-process.png)
+
+### 2. Runtime Stability (Final State)
+Once the convergence is reached, the environment remains stable with minimal resource overhead. The build pod is kept in a `Completed` state for audit logs.
+
+![Final State](../../docs/assets/openshift-poc/openshift-final-state.png)
+
+### 3. Public Route & Health Check
+The application is exposed through an OpenShift Route with **Edge TLS termination** (automated HTTPS). Connectivity to the backend MySQL database is verified through the Spring Boot Actuator health endpoint.
+
+![Route and Health Check](../../docs/assets/openshift-poc/openshift-route-and-health.png)
+
+*   **Endpoint:** `/api/v1/actuator/health`
+*   **Status:** `UP`
+*   **Database:** Verified (HikariPool Connection)
+
+---
+
+## 🛠️ Disaster Recovery & Environment Restore
+
+In the event of an environment reset, the full stack can be reconstructed using the following sequence:
 
 ```bash
-# 1. Restore Database & Network Permissions
-oc apply -f infra/openshift/mysql-db.yaml
-oc apply -f infra/openshift/webhook-rbac.yaml
+# 1. Infrastructure & Permissions  
+oc apply -f infra/openshift/mysql-db.yaml  
+oc apply -f infra/openshift/webhook-rbac.yaml  
+  
+# 2. Security (Apply local secrets)  
+oc apply -f infra/openshift/auth0-secret.yaml  
+oc apply -f infra/openshift/webhook-secret.yaml  
+  
+# 3. Pipelines & Runtime  
+oc apply -f infra/openshift/user-service-build.yaml  
+oc apply -f infra/openshift/user-service-deploy.yaml  
+  
+# 4. Manual Trigger (Optional)  
+oc start-build user-service-build  
+```
 
-# 2. Restore Secrets (Local files)
-oc apply -f infra/openshift/auth0-secret.yaml
-oc apply -f infra/openshift/webhook-secret.yaml
+---
 
-# 3. Create Build Pipeline & Deployment
-oc apply -f infra/openshift/user-service-build.yaml
-oc apply -f infra/openshift/user-service-deploy.yaml
+## 📊 Roadmap & Production Readiness
 
-# 4. Trigger Initial Build (if webhook is not yet set)
-oc start-build user-service-build
+While this PoC demonstrates the core architectural flow, the following enhancements are planned for a full production environment:
+
+| Feature                | Objective                                                              |
+| ---------------------- | ---------------------------------------------------------------------- |
+| GitOps Integration     | Migrate from Webhooks to ArgoCD for pull-based synchronization.        |
+| Advanced Observability | Deploy an OpenTelemetry Collector sidecar to aggregate traces.         |
+| Secret Encryption      | Implement Sealed Secrets to allow encrypted credentials in VCS.        |
+| Auto-scaling           | Configure HPA (Horizontal Pod Autoscaler) based on CPU/Memory metrics. |
+
+*Standardized for OpenShift Container Platform v4.x

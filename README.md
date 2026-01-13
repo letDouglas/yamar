@@ -14,11 +14,26 @@
 ![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-Observability-000000?style=for-the-badge&logo=opentelemetry&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Skaffold](https://img.shields.io/badge/Skaffold-Dev%20Workflow-1F8ACE?style=for-the-badge&logo=google-cloud&logoColor=white)
-![Status](https://img.shields.io/badge/Status-Active%20Development-green?style=for-the-badge)
+![OpenShift](https://img.shields.io/badge/OpenShift-Enterprise-EE0000?style=for-the-badge&logo=redhatopenshift&logoColor=white)
 
 YAMAR is a high-availability, event-driven microservices ecosystem designed to simulate a real-world, scalable e-commerce platform. It leverages advanced architectural patterns like CQRS (Command Query Responsibility Segregation), Polyglot Persistence, and asynchronous, choreographed sagas using Apache Kafka.
 
 The entire infrastructure is defined as code (IaC), fully containerized, and designed for cloud-native orchestration. It supports a dual-mode development workflow for both rapid iteration (Docker Compose) and production simulation (Kubernetes).
+
+---
+
+## 📋 Table of Contents
+
+- [System Architecture](#-system-architecture)
+- [Architectural Decisions & Core Concepts](#-architectural-decisions--core-concepts)
+- [Observability & Monitoring](#-observability--monitoring)
+- [Technology Stack](#-technology-stack)
+- [Local Observability Lab (Docker Compose)](#-local-observability-lab-docker-compose)
+- [The Golden Path: Running on Kubernetes](#-the-golden-path-running-on-kubernetes)
+- [Enterprise Platform Integration (Red Hat OpenShift)](#-enterprise-platform-integration-red-hat-openshift)
+- [Troubleshooting Common Issues](#-troubleshooting-common-issues)
+- [License](#-license)
+- [Contributing](#-contributing)
 
 ---
 
@@ -27,7 +42,6 @@ The entire infrastructure is defined as code (IaC), fully containerized, and des
 The ecosystem follows a Domain-Driven Design (DDD) approach, with each microservice representing a bounded context. Communication is handled through a mix of synchronous REST calls (via an API Gateway) for queries and asynchronous events (via Kafka) for commands and state changes, ensuring loose coupling and high resilience.
 
 ![YAMAR System Architecture](docs/assets/system-architecture.png)
-
 
 <details>
 <summary><b>🔍 Deep Dive: Observability Stack Architecture</b></summary>
@@ -45,6 +59,8 @@ This architecture enables:
 - **Unified Visualization**: Single Grafana dashboard with cross-pillar linking
 
 </details>
+
+---
 
 ## 🧠 Architectural Decisions & Core Concepts
 
@@ -250,24 +266,28 @@ You can test connectivity with a `curl` command. Expect a `401 Unauthorized` res
 ```bash
 curl -i http://api.127.0.0.1.nip.io/api/v1/products
 ```
+
 ---
 
-## ☁️ Cloud Deployment (Red Hat OpenShift)
+## ☁️ Enterprise Platform Integration (Red Hat OpenShift)
+> **Highlight:** Fully Automated Native CI/CD Pipeline
 
-Moving beyond standard Kubernetes, YAMAR includes a dedicated configuration for **Red Hat OpenShift**, implementing a fully automated **Cloud-Native CI/CD Pipeline**.
+Beyond standard Kubernetes, YAMAR features a dedicated configuration for **Red Hat OpenShift Container Platform**, implementing an enterprise-grade workflow focused on automation, platform security, and cloud-native build strategies.
 
-Unlike the local Kind setup, this deployment leverages OpenShift-specific primitives to demonstrate an Enterprise-grade workflow without external build servers.
+### Platform Validation & Status
+The following captures demonstrate the system's ability to self-heal and automate the delivery process from code to production.
 
-### Architecture Highlights
+|                 **Cluster Status (Administrator View)**                  |                          **Automated CI/CD (Self-Healing)**                           |
+|:------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------:|
+| ![OpenShift Dashboard](docs/assets/openshift-poc/openshift-dashboard-deployments.png) | ![Self-Healing Process](docs/assets/openshift-poc/openshift-self-healing-process.png) |
 
-![OpenShift Architecture](docs/assets/openshift-architecture.png)
+#### Key Implementation Highlights:
+- **📦 Native S2I Pipeline**: Direct source-to-image compilation inside the cluster using Red Hat UBI images, ensuring a secure and standardized build environment.
+- **🔄 GitHub Webhook Integration**: Fully automated build-and-deploy cycle triggered on every `git push`, enabling a true Continuous Deployment experience.
+- **🔐 RBAC Security Tuning**: Custom `RoleBinding` to manage secure external API access for triggers, resolving standard permission constraints in public cloud environments.
+- **💾 Persistent Data Layer**: MySQL instance backed by a `PersistentVolumeClaim` (PVC) to guarantee data durability across pod lifecycles.
 
-- **Native CI/CD:** Uses `BuildConfig` and **Source-to-Image (S2I)** to compile Java 21 source code directly inside the cluster.
-- **Automated Triggers:** Configured via **GitHub Webhooks**. A `git push` triggers a build, which updates the `ImageStream`, causing the Deployment to perform a **Zero-Downtime Rolling Update**.
-- **Security & Config:** Implements the **"Config-in-Cluster"** pattern. Database credentials and Auth0 tokens are injected via Kubernetes Secrets, while application behavior is tuned via a dedicated `openshift` Spring Profile.
-- **Persistence:** MySQL is backed by a `PersistentVolumeClaim` (PVC) to ensure data survival across pod restarts.
-
-👉 **[View Full OpenShift Documentation & Manifests](./infra/openshift/README.md)**
+👉 **[Read the Full OpenShift Technical Documentation & Manifests](./infra/openshift/README.md)**
 
 ---
 
