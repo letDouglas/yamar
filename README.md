@@ -250,6 +250,24 @@ You can test connectivity with a `curl` command. Expect a `401 Unauthorized` res
 ```bash
 curl -i http://api.127.0.0.1.nip.io/api/v1/products
 ```
+---
+
+## ☁️ Cloud Deployment (Red Hat OpenShift)
+
+Moving beyond standard Kubernetes, YAMAR includes a dedicated configuration for **Red Hat OpenShift**, implementing a fully automated **Cloud-Native CI/CD Pipeline**.
+
+Unlike the local Kind setup, this deployment leverages OpenShift-specific primitives to demonstrate an Enterprise-grade workflow without external build servers.
+
+### Architecture Highlights
+
+![OpenShift Architecture](docs/assets/openshift-architecture.png)
+
+- **Native CI/CD:** Uses `BuildConfig` and **Source-to-Image (S2I)** to compile Java 21 source code directly inside the cluster.
+- **Automated Triggers:** Configured via **GitHub Webhooks**. A `git push` triggers a build, which updates the `ImageStream`, causing the Deployment to perform a **Zero-Downtime Rolling Update**.
+- **Security & Config:** Implements the **"Config-in-Cluster"** pattern. Database credentials and Auth0 tokens are injected via Kubernetes Secrets, while application behavior is tuned via a dedicated `openshift` Spring Profile.
+- **Persistence:** MySQL is backed by a `PersistentVolumeClaim` (PVC) to ensure data survival across pod restarts.
+
+👉 **[View Full OpenShift Documentation & Manifests](./infra/openshift/README.md)**
 
 ---
 
