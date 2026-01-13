@@ -4,6 +4,8 @@ metadata:
   name: user-service
   labels:
     app: user-service
+  annotations:
+    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"user-service:latest","namespace":"letdouglas98-dev"},"fieldPath":"spec.template.spec.containers[?(@.name==\"user-service\")].image","paused":false}]'
 spec:
   replicas: 1
   selector:

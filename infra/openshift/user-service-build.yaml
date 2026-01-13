@@ -12,6 +12,11 @@ metadata:
   labels:
     app: user-service
 spec:
+  triggers:
+    - type: GitHub
+      github:
+        secretReference:
+          name: "webhook-secret"
   output:
     to:
       kind: ImageStreamTag

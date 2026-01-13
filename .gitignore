@@ -41,3 +41,4 @@ iHELP.md
 
 # Openshift
 infra/openshift/auth0-secret.yaml
+infra/openshift/webhook-secret.yaml
