@@ -1,0 +1,31 @@
+replicaCount: 1
+
+image:
+  repository: ""
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: "nginx"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: Prefix
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 768Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+env: [ ]
+
+initContainers: [ ]

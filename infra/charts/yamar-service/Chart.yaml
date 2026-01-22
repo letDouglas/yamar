@@ -1,0 +1,6 @@
+apiVersion: v2
+name: yamar-service
+description: A Universal Helm Chart for deploying YAMAR Spring Boot microservices
+type: application
+version: 0.1.0
+appVersion: "latest"
