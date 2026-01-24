@@ -1,0 +1,34 @@
+nameOverride: "user-service"
+
+image:
+  repository: "yamar-user-service"
+  tag: "latest"
+
+service:
+  port: 8044
+
+env:
+  - name: SPRING_DATASOURCE_URL
+    value: "jdbc:mysql://mysql:3306/user?allowPublicKeyRetrieval=true&useSSL=false"
+  - name: SPRING_DATASOURCE_USERNAME
+    value: "root"
+
+secretEnv:
+  - name: SPRING_DATASOURCE_PASSWORD
+    secretKey: mysql-root-password
+  - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI
+    secretKey: auth0-issuer-uri
+
+initContainers:
+  - name: wait-for-mysql
+    image: busybox:latest
+    command:
+      - sh
+      - -c
+      - |
+        echo "Waiting for MySQL..."
+        until nc -z mysql 3306; do
+          echo "waiting for mysql:3306..."
+          sleep 2
+        done
+        echo "MySQL is up!"
