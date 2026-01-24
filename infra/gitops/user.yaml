@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: user-service-app
+  namespace: argocd
+spec:
+  source:
+    repoURL: 'https://github.com/letDouglas/yamar.git'
+    targetRevision: HEAD
+    path: infra/charts/yamar-service
+    helm:
+      valueFiles:
+        - ../../values/user.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
