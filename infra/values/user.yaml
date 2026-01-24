@@ -1,5 +1,7 @@
 nameOverride: "user-service"
 
+contextPath: "/api/v1"
+
 image:
   repository: "yamar-user-service"
   tag: "latest"

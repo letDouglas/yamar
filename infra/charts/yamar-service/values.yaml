@@ -1,5 +1,7 @@
 replicaCount: 1
 
+contextPath: ""
+
 image:
   repository: ""
   pullPolicy: IfNotPresent
