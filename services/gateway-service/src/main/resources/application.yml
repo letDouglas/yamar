@@ -179,13 +179,13 @@ resilience4j:
 
 downstream-services:
   product-service:
-    url: http://product-service:8041
+    url: ${DOWNSTREAM_SERVICES_PRODUCT_SERVICE_URL:http://product-service:8041}
   order-service:
-    url: http://order-service:8042
+    url: ${DOWNSTREAM_SERVICES_ORDER_SERVICE_URL:http://order-service:8042}
   inventory-service:
-    url: http://inventory-service:8043
+    url: ${DOWNSTREAM_SERVICES_INVENTORY_SERVICE_URL:http://inventory-service:8043}
   user-service:
-    url: http://user-service:8044
+    url: ${DOWNSTREAM_SERVICES_USER_SERVICE_URL:http://user-service:8044}
 
 management:
   endpoints:
