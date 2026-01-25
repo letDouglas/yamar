@@ -48,7 +48,7 @@ spec:
                 secretKeyRef:
                   name: mysql-secrets
                   key: database-root-password
-            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI
+            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
               valueFrom:
                 secretKeyRef:
                   name: auth0-secrets

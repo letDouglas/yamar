@@ -19,7 +19,7 @@ env:
 secretEnv:
   - name: SPRING_DATASOURCE_PASSWORD
     secretKey: mysql-root-password
-  - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI
+  - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
     secretKey: auth0-issuer-uri
 
 initContainers:

@@ -26,7 +26,7 @@ spec:
             - configMapRef:
                 name: gateway-config
           env:
-            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI
+            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
               valueFrom:
                 secretKeyRef:
                   name: yamar-secrets

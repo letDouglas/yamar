@@ -27,7 +27,7 @@ env:
 secretEnv:
   - name: SPRING_DATA_MONGODB_PASSWORD
     secretKey: mongodb-passwords
-  - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI
+  - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
     secretKey: auth0-issuer-uri
 
 initContainers:
