@@ -47,6 +47,10 @@ application:
 
     user-service:
       url: ${USER_SERVICE_URL:http://user-service:8044/api/v1/users}
+    product-service:
+      url: ${PRODUCT_SERVICE_URL:http://product-service:8041/api/v1/products}
+    inventory-service:
+      url: ${INVENTORY_SERVICE_URL:http://inventory-service:8043/api/v1/inventory}
 
 springdoc:
   api-docs:
