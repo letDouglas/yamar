@@ -1,0 +1,28 @@
+nameOverride: "inventory-service"
+
+image:
+  repository: "ghcr.io/letdouglas/yamar-inventory-service"
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  port: 8043
+
+contextPath: "/api/v1"
+
+env:
+  - name: SPRING_DATASOURCE_URL
+    value: "jdbc:mysql://mysql:3306/inventory?allowPublicKeyRetrieval=true&useSSL=false"
+  - name: SPRING_DATASOURCE_USERNAME
+    value: "root"
+
+secretEnv:
+  - name: SPRING_DATASOURCE_PASSWORD
+    secretKey: mysql-root-password
+  - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI
+    secretKey: auth0-issuer-uri
+
+initContainers:
+  - name: wait-for-mysql
+    image: busybox:latest
+    command: [ 'sh', '-c', 'until nc -z mysql 3306; do echo waiting for mysql; sleep 2; done' ]

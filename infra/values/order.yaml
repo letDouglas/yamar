@@ -1,0 +1,43 @@
+nameOverride: "order-service"
+
+image:
+  repository: "ghcr.io/letdouglas/yamar-order-service"
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  port: 8042
+
+contextPath: "/api/v1"
+
+env:
+  - name: SPRING_DATASOURCE_URL
+    value: "jdbc:mysql://mysql:3306/orders?allowPublicKeyRetrieval=true&useSSL=false"
+  - name: SPRING_DATASOURCE_USERNAME
+    value: "root"
+
+  - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+    value: "kafka:9092"
+  - name: SPRING_KAFKA_PRODUCER_PROPERTIES_SCHEMA_REGISTRY_URL
+    value: "http://schema-registry:8081"
+
+  - name: USER_SERVICE_URL
+    value: "http://yamar-user-service:8044/api/v1/users"
+  - name: PRODUCT_SERVICE_URL
+    value: "http://yamar-product-service:8041/api/v1/products"
+  - name: INVENTORY_SERVICE_URL
+    value: "http://yamar-inventory-service:8043/api/v1/inventory"
+
+secretEnv:
+  - name: SPRING_DATASOURCE_PASSWORD
+    secretKey: mysql-root-password
+  - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI
+    secretKey: auth0-issuer-uri
+
+initContainers:
+  - name: wait-for-mysql
+    image: busybox:latest
+    command: ['sh', '-c', 'until nc -z mysql 3306; do echo waiting for mysql; sleep 2; done']
+  - name: wait-for-kafka
+    image: busybox:latest
+    command: ['sh', '-c', 'until nc -z kafka 9092; do echo waiting for kafka; sleep 2; done']

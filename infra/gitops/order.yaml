@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: order-service-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/letDouglas/yamar.git'
+    targetRevision: HEAD
+    path: infra/charts/yamar-service
+    helm:
+      valueFiles:
+        - ../../values/order.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
