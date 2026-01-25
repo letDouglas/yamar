@@ -1,0 +1,27 @@
+# .dockerignore (ROOT)
+
+# 1. Git & IDE
+# Exclude VCS and IDE files from the container
+.git
+.gitignore
+.idea
+*.iml
+.vscode
+.DS_Store
+
+# 2. Local build artifacts
+# Docker will rebuild everything; ignore local targets
+target/
+**/target/
+*.class
+*.jar
+*.war
+
+# 3. Docs & logs
+# Not needed in the image
+*.md
+*.log
+
+# 4. Infrastructure
+# Ignore Helm charts and GitOps configs to optimize Docker caching
+infra/
