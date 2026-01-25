@@ -3,8 +3,9 @@ nameOverride: "user-service"
 contextPath: "/api/v1"
 
 image:
-  repository: "yamar-user-service"
+  repository: "ghcr.io/letdouglas/yamar-user-service"
   tag: "latest"
+  pullPolicy: Always
 
 service:
   port: 8044

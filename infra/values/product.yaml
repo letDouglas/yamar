@@ -1,8 +1,9 @@
 nameOverride: "product-service"
 
 image:
-  repository: "yamar-product-service"
+  repository: "ghcr.io/letdouglas/yamar-product-service"
   tag: "latest"
+  pullPolicy: Always
 
 service:
   port: 8041
