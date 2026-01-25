@@ -3,6 +3,10 @@ name: YAMAR CI Pipeline
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'services/**'
+      - 'pom.xml'
+      - '.github/workflows/ci.yml'
   workflow_dispatch:
 
 permissions:
