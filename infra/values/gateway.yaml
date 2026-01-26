@@ -1,0 +1,37 @@
+nameOverride: "gateway-service"
+
+image:
+  repository: "ghcr.io/letdouglas/yamar-gateway-service"
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  port: 8080
+
+env:
+  - name: DOWNSTREAM_SERVICES_PRODUCT_SERVICE_URL
+    value: "http://product-service-app:8041"
+  - name: DOWNSTREAM_SERVICES_ORDER_SERVICE_URL
+    value: "http://order-service-app:8042"
+  - name: DOWNSTREAM_SERVICES_INVENTORY_SERVICE_URL
+    value: "http://inventory-service-app:8043"
+  - name: DOWNSTREAM_SERVICES_USER_SERVICE_URL
+    value: "http://user-service-app:8044"
+
+secretEnv:
+  - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
+    secretKey: auth0-issuer-uri
+
+initContainers: [ ]
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+  hosts:
+    - host: api.127.0.0.1.nip.io
+      paths:
+        - path: /
+          pathType: Prefix
