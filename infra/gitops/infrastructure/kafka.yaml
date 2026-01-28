@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: 'https://charts.bitnami.com/bitnami'
     chart: kafka
-    targetRevision: 26.8.3
+    targetRevision: 32.4.3
     helm:
       valueFiles:
         - https://raw.githubusercontent.com/letDouglas/yamar/main/infra/k8s/helm/kafka-values.yml
