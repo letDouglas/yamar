@@ -4,14 +4,15 @@ metadata:
   name: infra-schema-registry
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "-2"
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
   project: default
   source:
     repoURL: 'https://charts.bitnami.com/bitnami'
     chart: schema-registry
-    targetRevision: 15.0.3
+    targetRevision: 26.0.5
     helm:
+      releaseName: kafka
       valueFiles:
         - https://raw.githubusercontent.com/letDouglas/yamar/main/infra/k8s/helm/schema-registry-values.yml
   destination:

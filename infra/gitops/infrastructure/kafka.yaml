@@ -12,6 +12,7 @@ spec:
     chart: kafka
     targetRevision: 32.4.3
     helm:
+      releaseName: kafka
       valueFiles:
         - https://raw.githubusercontent.com/letDouglas/yamar/main/infra/k8s/helm/kafka-values.yml
   destination:

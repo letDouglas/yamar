@@ -12,6 +12,7 @@ spec:
     chart: elasticsearch
     targetRevision: 19.13.10
     helm:
+      releaseName: elasticsearch
       valueFiles:
         - https://raw.githubusercontent.com/letDouglas/yamar/main/infra/k8s/helm/elasticsearch-values.yml
   destination:

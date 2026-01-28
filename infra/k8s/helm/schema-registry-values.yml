@@ -20,13 +20,8 @@ persistence:
 extraEnvVars:
   - name: SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR
     value: "1"
-  - name: SCHEMA_REGISTRY_LEADER_ELIGIBILITY
-    value: "true"
   - name: SCHEMA_REGISTRY_DEBUG
     value: "true"
-
-  - name: JAVA_TOOL_OPTIONS
-    value: "-Dkafkastore.init.timeout.ms=300000 -Dkafkastore.timeout.ms=300000 -Djava.net.preferIPv4Stack=true"
 
 resources:
   requests:
@@ -34,18 +29,3 @@ resources:
     memory: 256Mi
   limits:
     memory: 1Gi
-
-initContainers:
-  - name: wait-for-kafka
-    image: busybox:latest
-    command:
-      - 'sh'
-      - '-c'
-      - |
-        echo "Waiting for Kafka..."
-        until nc -z kafka 9092; do 
-          echo "waiting..."
-          sleep 5
-        done
-        echo "Kafka is up! Waiting 15s more for topic creation..."
-        sleep 15

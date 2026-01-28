@@ -12,6 +12,7 @@ spec:
     chart: mongodb
     targetRevision: 14.2.3
     helm:
+      releaseName: mongodb
       valueFiles:
         - https://raw.githubusercontent.com/letDouglas/yamar/main/infra/k8s/helm/mongo-values.yml
   destination:

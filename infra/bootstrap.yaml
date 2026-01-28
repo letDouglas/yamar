@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/letDouglas/yamar.git'
-    targetRevision: HEAD
+    targetRevision: main
     path: infra/gitops
     directory:
       recurse: true

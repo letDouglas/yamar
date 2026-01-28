@@ -2,11 +2,8 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: db-initializer
-  annotations:
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-delete-policy": before-hook-creation
 spec:
-  ttlSecondsAfterFinished: 600
+  ttlSecondsAfterFinished: 100
   backoffLimit: 10
   template:
     spec:
@@ -18,29 +15,22 @@ spec:
           args:
             - |
               echo "Waiting for MySQL to become ready..."
+              # Aumentiamo la resilienza del check
               until mysql -h mysql -u root -p$MYSQL_ROOT_PASSWORD -e "SELECT 1"; do
-                echo "MySQL is not yet available, retrying..."
+                echo "MySQL is not yet available, retrying in 5s..."
                 sleep 5
               done
               
-              echo "MySQL is ready. Resetting databases..."
+              echo "MySQL is ready. Creating databases..."
               mysql -h mysql -u root -p$MYSQL_ROOT_PASSWORD <<EOF
-              -- Create Inventory
               CREATE DATABASE IF NOT EXISTS inventory;
-              GRANT ALL PRIVILEGES ON inventory.* TO 'root'@'%';
-              
-              -- Create Orders
               CREATE DATABASE IF NOT EXISTS orders;
-              GRANT ALL PRIVILEGES ON orders.* TO 'root'@'%';
-              
-              -- Create User 
               CREATE DATABASE IF NOT EXISTS user;
-              GRANT ALL PRIVILEGES ON user.* TO 'root'@'%';
-
+              GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';
               FLUSH PRIVILEGES;
               EOF
               
-              echo "✅ Database initialization completed successfully."
+              echo "✅ Database initialization completed."
           env:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
