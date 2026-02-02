@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: 'https://github.com/letDouglas/yamar.git'
     targetRevision: main
-    path: infra/k8s/jobs
+    path: infra/resources/jobs
   destination:
     server: https://kubernetes.default.svc
     namespace: default

@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: 'https://github.com/letDouglas/yamar.git'
     targetRevision: HEAD
-    path: infra/k8s/apps/mysql
+    path: infra/resources/mysql
   destination:
     server: https://kubernetes.default.svc
     namespace: default
