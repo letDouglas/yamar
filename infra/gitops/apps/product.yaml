@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/letDouglas/yamar.git'
-    targetRevision: HEAD
+    targetRevision: main
     path: infra/charts/yamar-service
     helm:
       valueFiles:

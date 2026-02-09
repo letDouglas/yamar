@@ -30,6 +30,15 @@ spec:
             - configMapRef:
                 name: {{ include "yamar-service.fullname" . }}
           env:
+            {{- if .Values.otel.enabled }}
+            - name: SPRING_PROFILES_ACTIVE
+              value: "k8s"
+            - name: MANAGEMENT_OTLP_TRACING_ENDPOINT
+              value: "{{ .Values.otel.endpoint }}/v1/traces"
+            - name: MANAGEMENT_OTLP_METRICS_EXPORT_URL
+              value: "{{ .Values.otel.endpoint }}/v1/metrics"
+            {{- end }}
+
             {{- range .Values.secretEnv }}
             - name: {{ .name }}
               valueFrom:

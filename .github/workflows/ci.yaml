@@ -2,7 +2,9 @@ name: YAMAR CI Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - "main"
+      - "feature/**"
     paths:
       - 'services/**'
       - 'pom.xml'

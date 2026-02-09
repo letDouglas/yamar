@@ -31,3 +31,7 @@ resources:
 env: [ ]
 
 initContainers: [ ]
+
+otel:
+  enabled: true
+  endpoint: "http://otel-collector-opentelemetry-collector.observability.svc.cluster.local:4318"

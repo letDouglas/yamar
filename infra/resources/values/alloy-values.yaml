@@ -1,0 +1,132 @@
+alloy:
+  mode: 'daemonset'
+  configMap:
+    content: |-
+      discovery.kubernetes "pods" {
+        role = "pod"
+      }
+      
+      discovery.relabel "pod_logs" {
+        targets = discovery.kubernetes.pods.targets
+      
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+      
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label  = "pod"
+        }
+      
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label  = "container"
+        }
+      
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_app"]
+          target_label  = "app"
+        }
+      
+        rule {
+          source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]  
+          separator = "/"
+          action = "replace"
+          target_label = "__path__"
+          replacement = "/var/log/pods/*_*_${1}/${2}/*.log"
+        }
+      }
+      
+      local.file_match "pod_logs" {
+        path_targets = discovery.relabel.pod_logs.output
+      }
+      
+      loki.source.file "pod_logs" {
+        targets    = local.file_match.pod_logs.targets
+        forward_to = [loki.process.json_logs.receiver]
+        tail_from_end = true
+      }
+      
+      loki.process "json_logs" {
+        forward_to = [loki.write.default.receiver]
+      
+        stage.drop {
+          longer_than = "10KB"
+        }
+      
+        stage.limit {
+          rate = 1000
+          burst = 2000
+          drop = true
+        }
+      
+        stage.regex {
+          expression = "^(?P<k8s_time>[^ ]+) [^ ]+ [^ ]+ (?P<content>.*)$"
+        }
+      
+        stage.json {
+          source = "content"
+          expressions = {
+            level    = "level",
+            service  = "\"service.name\"",
+            trace_id = "traceId",
+            app_time = "\"@timestamp\"",
+            msg      = "message",
+          }
+        }
+      
+        stage.labels {
+          values = {
+            level   = "level",
+            service = "service",
+          }
+        }
+      
+        stage.structured_metadata {
+          values = {
+            trace_id = "trace_id",
+          }
+        }
+      
+        stage.timestamp {
+          source = "k8s_time"
+          format = "RFC3339"
+        }
+      
+        stage.output {
+          source = "msg"
+        }
+      }
+      
+      loki.write "default" {
+        endpoint {
+          url = "http://loki-gateway.observability.svc.cluster.local/loki/api/v1/push"
+        }
+        external_labels = {
+          cluster = "yamar-kind",
+        }
+      }
+
+  mounts:
+    varlog: true
+    dockercontainers: false
+
+controller:
+  type: 'daemonset'
+  hostNetwork: false
+  containerSecurityContext:
+    runAsUser: 0
+    runAsGroup: 0
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      memory: "256Mi"
+
+rbac:
+  create: true
+
+serviceAccount:
+  create: true

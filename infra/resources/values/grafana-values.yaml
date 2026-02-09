@@ -1,0 +1,61 @@
+adminPassword: "yamar"
+
+persistence:
+  enabled: true
+  size: 5Gi
+  storageClass: standard
+
+initChownData:
+  enabled: false
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+
+      - name: Prometheus
+        type: prometheus
+        uid: yamar-prometheus
+        url: http://prometheus-server.observability.svc.cluster.local:80
+        access: proxy
+        isDefault: false
+        jsonData:
+          httpMethod: POST
+
+      - name: Loki
+        type: loki
+        uid: yamar-loki
+        url: http://loki-gateway.observability.svc.cluster.local:80
+        access: proxy
+        jsonData:
+          derivedFields:
+            - datasourceUid: yamar-tempo
+              matcherRegex: "traceId=(\\w+)"
+              name: TraceID
+              url: "$${__value.raw}"
+
+      - name: Tempo
+        type: tempo
+        uid: yamar-tempo
+        url: http://tempo.observability.svc.cluster.local:3100
+        access: proxy
+        isDefault: true
+        jsonData:
+          tracesToLogsV2:
+            datasourceUid: 'yamar-loki'
+            spanStartTimeShift: '1h'
+            spanEndTimeShift: '-1h'
+            filterByTraceID: true
+            filterBySpanID: false
+          serviceMap:
+            datasourceUid: 'yamar-prometheus'
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
+testFramework:
+  enabled: false

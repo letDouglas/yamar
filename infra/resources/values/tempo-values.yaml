@@ -1,0 +1,35 @@
+fullnameOverride: "tempo"
+
+traces:
+  jaeger:
+    grpc:
+      enabled: false
+    thriftHttp:
+      enabled: false
+  zipkin:
+    enabled: false
+  otlp:
+    grpc:
+      enabled: true
+    http:
+      enabled: true
+
+tempo:
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/traces
+      wal:
+        path: /var/tempo/wal
+
+persistence:
+  enabled: true
+  size: 5Gi
+  storageClass: standard
+
+serviceMonitor:
+  enabled: false
+
+test:
+  enabled: false

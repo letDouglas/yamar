@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: infra-loki
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  project: default
+
+  sources:
+    - repoURL: 'https://grafana.github.io/helm-charts'
+      chart: loki
+      targetRevision: 5.43.3
+      helm:
+        releaseName: loki
+        valueFiles:
+          - $yamar-repo/infra/resources/values/loki-values.yaml
+
+    - repoURL: 'https://github.com/letDouglas/yamar.git'
+      targetRevision: main
+      ref: yamar-repo
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
