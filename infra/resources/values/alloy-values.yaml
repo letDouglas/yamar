@@ -97,11 +97,6 @@ alloy:
         stage.output {
           source = "msg"
         }
-      
-        stage.template {
-          source   = "output"
-          template = '{{ .msg }} traceId={{ .trace_id }}'
-        }
       }
       
       loki.write "default" {
