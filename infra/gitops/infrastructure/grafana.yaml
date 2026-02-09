@@ -18,7 +18,7 @@ spec:
           - $yamar-repo/infra/resources/values/grafana-values.yaml
 
     - repoURL: 'https://github.com/letDouglas/yamar.git'
-      targetRevision: main
+      targetRevision: feature/lgtm-stack-fix
       ref: yamar-repo
 
   destination:
